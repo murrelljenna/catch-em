@@ -1,6 +1,7 @@
 mod player;
 mod networking;
 
+use std::env;
 use std::f32::consts::TAU;
 
 use bevy::{
@@ -14,11 +15,37 @@ use bevy_rapier3d::prelude::*;
 
 use bevy_fps_controller::controller::*;
 use crate::player::spawn_player;
+use crate::networking::server::main as server_app;
+use crate::networking::client::main as client_app;
 
 const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 
 fn main() {
-    App::new()
+    // Get the command line arguments
+    /*let args: Vec<String> = env::args().collect();
+
+    // Extract the string value from the second argument or provide a default value
+    let input_string = args.get(1).unwrap_or(&"Default String".to_string()).to_string();
+
+    // Compare the unwrapped input string with another constant string
+    if input_string == "0" {
+        println!("Input string is equal to '0'");
+    } else {
+        println!("Input string is not equal to '0'");
+    }*/
+    let args: Vec<String> = env::args().collect();
+    let networkFlagMaybe = args.get(1);
+
+    let networkFlag = networkFlagMaybe.unwrap_or(&"0".to_string()).to_string();
+
+    if (networkFlag == "1") {
+        println!("Attempting to start game server");
+        server_app();
+    } else {
+        client_app();
+    }
+
+    /*App::new()
         .insert_resource(AmbientLight {
             color: Color::WHITE,
             brightness: 0.5,
@@ -30,7 +57,7 @@ fn main() {
         .add_plugins(FpsControllerPlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, (manage_cursor, scene_colliders, display_text, respawn))
-        .run();
+        .run();*/
 }
 
 fn setup(

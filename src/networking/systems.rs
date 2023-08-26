@@ -10,10 +10,10 @@ use crate::networking::HeartbeatTimer;
 use super::{events::NetworkEvent, transport::Transport, NetworkResource};
 
 #[derive(Resource)]
-pub struct Socket(UdpSocket);
+pub struct Socket(pub UdpSocket);
 
 #[derive(Resource)]
-pub struct SocketAddress(SocketAddr);
+pub struct SocketAddress(pub SocketAddr);
 
 pub fn client_recv_packet_system(socket: Res<Socket>, mut events: EventWriter<NetworkEvent>) {
     loop {

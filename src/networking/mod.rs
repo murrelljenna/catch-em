@@ -2,8 +2,8 @@ mod events;
 mod message;
 mod systems;
 mod transport;
-mod server;
-mod client;
+pub mod server;
+pub mod client;
 
 use std::collections::HashMap;
 use std::net::SocketAddr;

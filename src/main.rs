@@ -34,11 +34,11 @@ fn main() {
         println!("Input string is not equal to '0'");
     }*/
     let args: Vec<String> = env::args().collect();
-    let networkFlagMaybe = args.get(1);
+    let network_flag_maybe = args.get(1);
 
-    let networkFlag = networkFlagMaybe.unwrap_or(&"0".to_string()).to_string();
+    let network_flag = network_flag_maybe.unwrap_or(&"0".to_string()).to_string();
 
-    if (networkFlag == "1") {
+    if network_flag == "1" {
         println!("Attempting to start game server");
         server_app();
     } else {

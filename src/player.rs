@@ -1,13 +1,8 @@
 use std::f32::consts::TAU;
 
 use bevy::{
-    gltf::{GltfMesh, GltfNode},
-    gltf::Gltf,
-    math::Vec3Swizzles,
     prelude::*,
-    window::CursorGrabMode,
 };
-use bevy::ecs::system::EntityCommands;
 use bevy_rapier3d::prelude::*;
 
 use bevy_fps_controller::controller::*;

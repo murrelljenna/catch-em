@@ -1148,6 +1148,7 @@ dependencies = [
  "bevy",
  "bevy_fps_controller",
  "bevy_rapier3d",
+ "bytes",
 ]
 
 [[package]]

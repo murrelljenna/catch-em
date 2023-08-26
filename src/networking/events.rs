@@ -4,12 +4,12 @@ use std::{io, net::SocketAddr};
 use bytes::Bytes;
 use bevy::ecs::event::Event;
 
-use super::message::Message;
+use super::raw_message::RawMessage;
 
 #[derive(Event)]
 pub enum NetworkEvent {
     // A message was received from a client
-    Message(SocketAddr, Bytes),
+    RawMessage(SocketAddr, Bytes),
     // A new client has connected to us
     Connected(SocketAddr),
     // A client has disconnected from us
@@ -17,5 +17,5 @@ pub enum NetworkEvent {
     // An error occurred while receiving a message
     RecvError(io::Error),
     // An error occurred while sending a message
-    SendError(io::Error, Message),
+    SendError(io::Error, RawMessage),
 }

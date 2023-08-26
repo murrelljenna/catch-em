@@ -1,5 +1,5 @@
 mod events;
-mod message;
+mod raw_message;
 mod systems;
 mod transport;
 pub mod server;

@@ -50,7 +50,7 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
             NetworkEvent::Disconnected(handle) => {
                 info!("{}: disconnected!", handle);
             }
-            NetworkEvent::Message(handle, msg) => {
+            NetworkEvent::RawMessage(handle, msg) => {
                 info!("{} sent a message: {:?}", handle, msg);
             }
             NetworkEvent::SendError(err, msg) => {

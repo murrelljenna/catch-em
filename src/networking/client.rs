@@ -28,7 +28,7 @@ pub fn main() {
 fn connection_handler(mut events: EventReader<NetworkEvent>) {
     for event in events.iter() {
         match event {
-            NetworkEvent::Message(_, msg) => {
+            NetworkEvent::RawMessage(_, msg) => {
                 info!("server sent a message: {:?}", msg);
             }
             NetworkEvent::SendError(err, msg) => {

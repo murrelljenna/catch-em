@@ -1,13 +1,13 @@
 use std::{collections::VecDeque, net::SocketAddr};
 
-use super::message::Message;
+use super::raw_message::RawMessage;
 use bevy::ecs::system::Resource;
 
 /// Resource serving as the owner of the queue of messages to be sent. This resource also serves
 /// as the interface for other systems to send messages.
 #[derive(Resource)]
 pub struct Transport {
-    messages: VecDeque<Message>,
+    messages: VecDeque<RawMessage>,
 }
 
 impl Transport {
@@ -22,7 +22,7 @@ impl Transport {
     /// Creates a `Message` with the default guarantees provided by the `Socket` implementation and
     /// pushes it onto the messages queue to be sent on the next frame.
     pub fn send(&mut self, destination: SocketAddr, payload: &[u8]) {
-        let message = Message::new(destination, payload);
+        let message = RawMessage::new(destination, payload);
         self.messages.push_back(message);
     }
 
@@ -34,7 +34,7 @@ impl Transport {
 
     /// Returns a reference to the owned messages.
     #[must_use]
-    pub fn get_messages(&self) -> &VecDeque<Message> {
+    pub fn get_messages(&self) -> &VecDeque<RawMessage> {
         &self.messages
     }
 
@@ -43,8 +43,8 @@ impl Transport {
     /// messages with a particular urgency requirement.
     pub fn drain_messages_to_send(
         &mut self,
-        mut filter: impl FnMut(&mut Message) -> bool,
-    ) -> Vec<Message> {
+        mut filter: impl FnMut(&mut RawMessage) -> bool,
+    ) -> Vec<RawMessage> {
         let mut drained = Vec::with_capacity(self.messages.len());
         let mut i = 0;
         while i != self.messages.len() {

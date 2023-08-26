@@ -27,7 +27,7 @@ pub fn client_recv_packet_system(socket: Res<Socket>, mut events: EventWriter<Ne
                     continue;
                 }
                 debug!("received payload {:?} from {}", payload, address);
-                events.send(NetworkEvent::Message(address, payload));
+                events.send(NetworkEvent::RawMessage(address, payload));
             }
             Err(e) => {
                 if e.kind() != io::ErrorKind::WouldBlock {
@@ -65,7 +65,7 @@ pub fn server_recv_packet_system(
                     continue;
                 }
                 debug!("received payload {:?} from {}", payload, address);
-                events.send(NetworkEvent::Message(address, payload));
+                events.send(NetworkEvent::RawMessage(address, payload));
             }
             Err(e) => {
                 if e.kind() != io::ErrorKind::WouldBlock {

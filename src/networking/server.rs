@@ -6,7 +6,7 @@ use bevy::time::TimePlugin;
 use crate::networking::{NetworkEvent, ServerPlugin, Transport};
 use crate::networking::systems::Socket;
 
-const LISTEN_ADDRESS: &str = "127.0.0.1:4567";
+const LISTEN_ADDRESS: &str = "127.0.0.1:8080";
 
 pub fn main() {
     println!("Ahhhh");
@@ -39,6 +39,7 @@ pub fn main() {
 }
 
 fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResMut<Transport>) {
+    println!("Hi");
     for event in events.iter() {
         match event {
             NetworkEvent::Connected(handle) => {

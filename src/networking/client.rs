@@ -5,8 +5,9 @@ use crate::networking::{ClientPlugin, NetworkEvent};
 use crate::networking::systems::{Socket, SocketAddress};
 
 pub fn main() {
-    let remote_addr: SocketAddr = "127.0.0.1:4567".parse().expect("could not parse addr");
-    let socket = UdpSocket::bind("[::]:0").expect("could not bind socket");
+    let remote_addr: SocketAddr = "127.0.0.1:8080".parse().expect("could not parse addr");
+    let socket = UdpSocket::bind("127.0.0.1:8082").expect("could not bind socket");
+    println!("{}", remote_addr.is_ipv4());
     socket
         .connect(remote_addr)
         .expect("could not connect to server");

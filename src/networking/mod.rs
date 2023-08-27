@@ -2,6 +2,7 @@ mod events;
 mod raw_message;
 mod systems;
 mod transport;
+mod message;
 pub mod server;
 pub mod client;
 

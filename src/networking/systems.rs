@@ -6,6 +6,7 @@ use std::{
 use bevy::prelude::*;
 use bytes::Bytes;
 use crate::networking::HeartbeatTimer;
+use crate::networking::message::{deserialize, Message};
 
 use super::{events::NetworkEvent, transport::Transport, NetworkResource};
 
@@ -27,7 +28,8 @@ pub fn client_recv_packet_system(socket: Res<Socket>, mut events: EventWriter<Ne
                     continue;
                 }
                 debug!("received payload {:?} from {}", payload, address);
-                events.send(NetworkEvent::RawMessage(address, payload));
+                let message = deserialize(payload);
+                events.send(NetworkEvent::RawMessage(address, message));
             }
             Err(e) => {
                 if e.kind() != io::ErrorKind::WouldBlock {
@@ -65,7 +67,8 @@ pub fn server_recv_packet_system(
                     continue;
                 }
                 debug!("received payload {:?} from {}", payload, address);
-                events.send(NetworkEvent::RawMessage(address, payload));
+                let message = deserialize(payload);
+                events.send(NetworkEvent::RawMessage(address, message));
             }
             Err(e) => {
                 if e.kind() != io::ErrorKind::WouldBlock {

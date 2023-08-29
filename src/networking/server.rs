@@ -4,6 +4,7 @@ use bevy::{app::ScheduleRunnerPlugin, log::LogPlugin, prelude::*};
 use bevy::log::Level;
 use bevy::time::TimePlugin;
 use crate::networking::{NetworkEvent, ServerPlugin, Transport};
+use crate::networking::message::{Message, serialize};
 use crate::networking::systems::Socket;
 
 const LISTEN_ADDRESS: &str = "127.0.0.1:8080";
@@ -45,7 +46,13 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
             NetworkEvent::Connected(handle) => {
                 info!("{}: connected!", handle);
                 println!("AHH");
-                transport.send(*handle, b"PONG");
+                let message = Message::SpawnPlayer(Vec3
+                                                   {
+                                                       x: 1f32,
+                                                       y: 1f32,
+                                                       z: 1f32}
+                );
+                transport.send(*handle, &serialize(message))
             }
             NetworkEvent::Disconnected(handle) => {
                 info!("{}: disconnected!", handle);

@@ -3,13 +3,14 @@ use std::{io, net::SocketAddr};
 
 use bytes::Bytes;
 use bevy::ecs::event::Event;
+use crate::networking::message::Message;
 
 use super::raw_message::RawMessage;
 
 #[derive(Event)]
 pub enum NetworkEvent {
     // A message was received from a client
-    RawMessage(SocketAddr, Bytes),
+    RawMessage(SocketAddr, Message),
     // A new client has connected to us
     Connected(SocketAddr),
     // A client has disconnected from us

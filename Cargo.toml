@@ -10,6 +10,10 @@ bevy = "0.11.0"
 bevy_rapier3d = "0.22.0"
 bevy_fps_controller = "0.2.2"
 bytes = "1"
+serde = "1.0"
+serde_bytes = "0.11"
+serde_derive = "1.0"
+serde_cbor = "0.10"
 
 [profile.dev]
 opt-level = 1

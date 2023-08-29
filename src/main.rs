@@ -21,18 +21,6 @@ use crate::networking::client::main as client_app;
 const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 
 fn main() {
-    // Get the command line arguments
-    /*let args: Vec<String> = env::args().collect();
-
-    // Extract the string value from the second argument or provide a default value
-    let input_string = args.get(1).unwrap_or(&"Default String".to_string()).to_string();
-
-    // Compare the unwrapped input string with another constant string
-    if input_string == "0" {
-        println!("Input string is equal to '0'");
-    } else {
-        println!("Input string is not equal to '0'");
-    }*/
     let args: Vec<String> = env::args().collect();
     let network_flag_maybe = args.get(1);
 
@@ -44,20 +32,6 @@ fn main() {
     } else {
         client_app();
     }
-
-    /*App::new()
-        .insert_resource(AmbientLight {
-            color: Color::WHITE,
-            brightness: 0.5,
-        })
-        .insert_resource(ClearColor(Color::hex("D4F5F5").unwrap()))
-        .insert_resource(RapierConfiguration::default())
-        .add_plugins(DefaultPlugins)
-        .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugins(FpsControllerPlugin)
-        .add_systems(Startup, setup)
-        .add_systems(Update, (manage_cursor, scene_colliders, display_text, respawn))
-        .run();*/
 }
 
 fn setup(

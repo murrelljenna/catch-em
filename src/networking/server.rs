@@ -5,21 +5,19 @@ use bevy::log::Level;
 use bevy::time::TimePlugin;
 use crate::networking::{NetworkEvent, ServerPlugin, Transport};
 use crate::networking::message::{Message, serialize};
+use crate::networking::player::Players;
 use crate::networking::systems::Socket;
 
 const LISTEN_ADDRESS: &str = "127.0.0.1:8080";
 
 pub fn main() {
-    println!("Ahhhh");
     let socket = UdpSocket::bind(LISTEN_ADDRESS).expect("could not bind socket");
-    println!("Ahhhh");
     socket
         .set_nonblocking(true)
         .expect("could not set socket to be nonblocking");
     socket
         .set_read_timeout(Some(Duration::from_secs(5)))
         .expect("could not set read timeout");
-    println!("Ahhhh");
 
     info!("Server now listening on {}", LISTEN_ADDRESS);
 
@@ -29,6 +27,7 @@ pub fn main() {
             60. / 100.,
         )))
         .insert_resource(Socket(socket))
+        .insert_resource(Players::default())
         .add_plugins(TimePlugin::default())
         .add_plugins(LogPlugin {
             filter: "".to_string(),
@@ -39,18 +38,17 @@ pub fn main() {
         .run();
 }
 
-fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResMut<Transport>) {
-    println!("Hi");
+fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResMut<Transport>, players: Res<Players>) {
     for event in events.iter() {
         match event {
             NetworkEvent::Connected(handle) => {
                 info!("{}: connected!", handle);
-                println!("AHH");
-                let message = Message::SpawnPlayer(Vec3
+                let message = Message::SpawnPlayer(newPlayerId, Vec3
                                                    {
                                                        x: 1f32,
                                                        y: 1f32,
-                                                       z: 1f32}
+                                                       z: 1f32
+                                                   }
                 );
                 transport.send(*handle, &serialize(message))
             }

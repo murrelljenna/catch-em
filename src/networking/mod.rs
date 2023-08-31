@@ -3,6 +3,7 @@ mod raw_message;
 mod systems;
 mod transport;
 mod message;
+mod player;
 pub mod server;
 pub mod client;
 
@@ -80,6 +81,7 @@ impl Plugin for ClientPlugin {
         app.insert_resource(transport::Transport::new())
             .insert_resource(HeartbeatTimer(Timer::from_seconds(DEFAULT_HEARTBEAT_TICK_RATE_SECS, Default::default())))
             .add_event::<events::NetworkEvent>()
+            .add_event::<message::Message>()
             .add_systems(Update, systems::client_recv_packet_system)
             .add_systems(Update, systems::send_packet_system)
             .add_systems(Update, systems::auto_heartbeat_system);

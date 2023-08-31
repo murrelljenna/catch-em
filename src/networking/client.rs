@@ -7,6 +7,9 @@ use bevy_rapier3d::prelude::RapierConfiguration;
 use crate::networking::{ClientPlugin, NetworkEvent};
 use crate::networking::systems::{Socket, SocketAddress};
 use crate::{display_text, manage_cursor, respawn, scene_colliders, setup};
+use crate::networking::message::Message;
+use crate::networking::message::Message::SpawnPlayer;
+use crate::player::spawn_player;
 
 pub fn main() {
     let remote_addr: SocketAddr = "127.0.0.1:8080".parse().expect("could not parse addr");
@@ -36,15 +39,24 @@ pub fn main() {
         .add_plugins(FpsControllerPlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, (manage_cursor, scene_colliders, display_text, respawn))
-
+        .add_systems(Update, wait_for_spawn_player)
         .run();
 }
 
-fn connection_handler(mut events: EventReader<NetworkEvent>) {
+fn wait_for_spawn_player(mut commands: Commands, mut messages: EventReader<Message>, ) {
+    for message in messages.iter() {
+        match message {
+            SpawnPlayer(.., pos) => spawn_player(*pos, &mut commands)
+        }
+    }
+}
+
+fn connection_handler(mut events: EventReader<NetworkEvent>, mut messages: EventWriter<Message>) {
     for event in events.iter() {
         match event {
             NetworkEvent::RawMessage(_, msg) => {
                 info!("server sent a message: {:?}", msg);
+                messages.send(*msg);
             }
             NetworkEvent::SendError(err, msg) => {
                 error!(

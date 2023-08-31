@@ -9,9 +9,9 @@ use bevy_fps_controller::controller::*;
 
 const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 
-pub(crate) fn spawn_player(commands: &mut Commands) {
+pub(crate) fn spawn_player(pos: Vec3, commands: &mut Commands) {
     commands.spawn((
-        Collider::capsule(Vec3::Y * 0.5, Vec3::Y * 1.5, 0.5),
+        Collider::capsule(pos, pos * 1.5, 0.5),
         Friction {
             coefficient: 0.0,
             combine_rule: CoefficientCombineRule::Min,

@@ -4,11 +4,13 @@ use bytes::Bytes;
 use serde_bytes::ByteBuf;
 use serde_derive::Serialize;
 use serde_derive::Deserialize;
+use bevy::ecs::event::Event;
 use crate::networking::message::Message::SpawnPlayer;
+use crate::networking::player::PlayerId;
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Serialize, Deserialize, Event, Copy, Clone)]
 pub enum Message {
-    SpawnPlayer(Vec3)
+    SpawnPlayer(PlayerId, Vec3)
 }
 
 pub fn serialize(message: Message) -> Bytes {

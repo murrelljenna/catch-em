@@ -58,7 +58,6 @@ fn setup(
     // The other is a "render" player that is what is displayed to the user
     // This distinction is useful for later on if you want to add multiplayer,
     // where often time these two ideas are not exactly synced up
-    spawn_player(&mut commands);
     commands.spawn((
         Camera3dBundle {
             projection: Projection::Perspective(PerspectiveProjection {

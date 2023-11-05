@@ -103,6 +103,7 @@ pub fn idle_timeout_system(
     net.connections.retain(|addr, last_update| {
         let reached_idle_timeout = time.elapsed() - *last_update > idle_timeout;
         if reached_idle_timeout {
+            println!("Reached idle timeout");
             events.send(NetworkEvent::Disconnected(*addr));
         }
         !reached_idle_timeout

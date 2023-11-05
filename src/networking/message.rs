@@ -10,7 +10,14 @@ use crate::networking::player::PlayerId;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Event, Copy, Clone)]
 pub enum Message {
-    SpawnPlayer(PlayerId, Vec3)
+    SpawnPlayer(Vec3),
+    PlayerPosition(Vec3),
+    NetworkInput {
+        w: bool,
+        s: bool,
+        a: bool,
+        d: bool
+    }
 }
 
 pub fn serialize(message: Message) -> Bytes {

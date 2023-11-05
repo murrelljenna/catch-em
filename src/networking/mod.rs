@@ -6,6 +6,7 @@ mod message;
 mod player;
 pub mod server;
 pub mod client;
+mod send_input;
 
 use std::collections::HashMap;
 use std::net::SocketAddr;

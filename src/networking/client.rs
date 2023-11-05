@@ -5,10 +5,11 @@ use bevy_fps_controller::controller::FpsControllerPlugin;
 use bevy_rapier3d::plugin::{NoUserData, RapierPhysicsPlugin};
 use bevy_rapier3d::prelude::RapierConfiguration;
 use crate::networking::{ClientPlugin, NetworkEvent};
-use crate::networking::systems::{Socket, SocketAddress};
+use crate::networking::systems::{auto_heartbeat_system, Socket, SocketAddress};
 use crate::{display_text, manage_cursor, respawn, scene_colliders, setup};
-use crate::networking::message::Message;
-use crate::networking::message::Message::SpawnPlayer;
+use crate::networking::message::{Message, serialize};
+use crate::networking::message::Message::{NetworkInput, SpawnPlayer};
+use crate::networking::send_input::send_player_input;
 use crate::player::spawn_player;
 
 pub fn main() {
@@ -40,13 +41,16 @@ pub fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, (manage_cursor, scene_colliders, display_text, respawn))
         .add_systems(Update, wait_for_spawn_player)
+        .add_systems(Update, auto_heartbeat_system)
+        .add_systems(Update, send_player_input)
         .run();
 }
 
 fn wait_for_spawn_player(mut commands: Commands, mut messages: EventReader<Message>, ) {
     for message in messages.iter() {
         match message {
-            SpawnPlayer(.., pos) => spawn_player(*pos, &mut commands)
+            SpawnPlayer(.., pos) => spawn_player(*pos, &mut commands),
+                _ => ()
         }
     }
 }

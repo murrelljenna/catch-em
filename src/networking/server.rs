@@ -5,6 +5,7 @@ use bevy::log::Level;
 use bevy::time::TimePlugin;
 use crate::networking::{NetworkEvent, ServerPlugin, Transport};
 use crate::networking::message::{Message, serialize};
+use crate::networking::message::Message::NetworkInput;
 use crate::networking::player::Players;
 use crate::networking::systems::Socket;
 
@@ -39,18 +40,19 @@ pub fn main() {
 }
 
 fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResMut<Transport>, players: Res<Players>) {
+    println!("hiii bar");
     for event in events.iter() {
         match event {
             NetworkEvent::Connected(handle) => {
                 info!("{}: connected!", handle);
-                let message = Message::SpawnPlayer(newPlayerId, Vec3
+                let message = Message::SpawnPlayer(Vec3
                                                    {
                                                        x: 1f32,
                                                        y: 1f32,
                                                        z: 1f32
                                                    }
                 );
-                transport.send(*handle, &serialize(message))
+                transport.send(*handle, &serialize(message));
             }
             NetworkEvent::Disconnected(handle) => {
                 info!("{}: disconnected!", handle);

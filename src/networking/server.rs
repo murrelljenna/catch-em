@@ -40,7 +40,6 @@ pub fn main() {
 }
 
 fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResMut<Transport>, players: Res<Players>) {
-    println!("hiii bar");
     for event in events.iter() {
         match event {
             NetworkEvent::Connected(handle) => {

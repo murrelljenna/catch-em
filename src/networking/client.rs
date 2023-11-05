@@ -10,6 +10,7 @@ use crate::{display_text, manage_cursor, respawn, scene_colliders, setup};
 use crate::networking::message::{Message, serialize};
 use crate::networking::message::Message::{NetworkInput, SpawnPlayer};
 use crate::networking::send_input::send_player_input;
+use crate::networking::send_player_position::send_player_position;
 use crate::player::spawn_player;
 
 pub fn main() {
@@ -42,7 +43,7 @@ pub fn main() {
         .add_systems(Update, (manage_cursor, scene_colliders, display_text, respawn))
         .add_systems(Update, wait_for_spawn_player)
         .add_systems(Update, auto_heartbeat_system)
-        .add_systems(Update, send_player_input)
+        .add_systems(Update, send_player_position)
         .run();
 }
 

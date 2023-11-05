@@ -1,3 +1,5 @@
+extern crate core;
+
 mod player;
 mod networking;
 
@@ -23,14 +25,16 @@ const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 fn main() {
     let args: Vec<String> = env::args().collect();
     let network_flag_maybe = args.get(1);
+    let network_addr_maybe = args.get(2);
 
     let network_flag = network_flag_maybe.unwrap_or(&"0".to_string()).to_string();
+    let network_addr = network_addr_maybe.unwrap_or(&"127.0.0.1:8082".to_string()).to_string();
 
     if network_flag == "1" {
         println!("Attempting to start game server");
         server_app();
     } else {
-        client_app();
+        client_app(network_addr);
     }
 }
 

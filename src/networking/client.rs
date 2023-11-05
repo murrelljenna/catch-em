@@ -13,9 +13,10 @@ use crate::networking::send_input::send_player_input;
 use crate::networking::send_player_position::send_player_position;
 use crate::player::spawn_player;
 
-pub fn main() {
+pub fn main(socket_addr: String) {
     let remote_addr: SocketAddr = "127.0.0.1:8080".parse().expect("could not parse addr");
-    let socket = UdpSocket::bind("127.0.0.1:8082").expect("could not bind socket");
+    println!("{}", socket_addr);
+    let socket = UdpSocket::bind(socket_addr).expect("could not bind socket");
     println!("{}", remote_addr.is_ipv4());
     socket
         .connect(remote_addr)

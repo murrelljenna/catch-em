@@ -1,4 +1,5 @@
 use std::{net::UdpSocket, time::Duration};
+use std::fmt::Display;
 
 use bevy::{app::ScheduleRunnerPlugin, log::LogPlugin, prelude::*};
 use bevy::log::Level;
@@ -39,7 +40,7 @@ pub fn main() {
         .run();
 }
 
-fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResMut<Transport>, players: Res<Players>) {
+fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResMut<Transport>, mut players: ResMut<Players>) {
     for event in events.iter() {
         match event {
             NetworkEvent::Connected(handle) => {
@@ -51,7 +52,14 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
                                                        z: 1f32
                                                    }
                 );
+
                 transport.send(*handle, &serialize(message));
+
+                let player_id: i16 = Players::generate_id();
+
+                players.add_player(player_id, *handle);
+
+                println!("{:?}", players)
             }
             NetworkEvent::Disconnected(handle) => {
                 info!("{}: disconnected!", handle);

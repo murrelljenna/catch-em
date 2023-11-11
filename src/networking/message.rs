@@ -5,13 +5,15 @@ use serde_bytes::ByteBuf;
 use serde_derive::Serialize;
 use serde_derive::Deserialize;
 use bevy::ecs::event::Event;
-use crate::networking::message::Message::SpawnPlayer;
+use crate::networking::message::Message::SpawnOwned;
+use crate::networking::message::Message::SpawnNetworked;
 use crate::networking::player::PlayerId;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Event, Copy, Clone)]
 pub enum Message {
-    SpawnPlayer(Vec3),
-    PlayerPosition(Vec3),
+    SpawnNetworked(PlayerId, Vec3),
+    SpawnOwned(PlayerId, Vec3),
+    PlayerPosition(PlayerId, Vec3),
     NetworkInput {
         w: bool,
         s: bool,

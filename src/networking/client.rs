@@ -8,10 +8,11 @@ use crate::networking::{ClientPlugin, NetworkEvent};
 use crate::networking::systems::{auto_heartbeat_system, Socket, SocketAddress};
 use crate::{display_text, manage_cursor, respawn, scene_colliders, setup};
 use crate::networking::message::{Message, serialize};
-use crate::networking::message::Message::{NetworkInput, SpawnPlayer};
+use crate::networking::message::Message::{NetworkInput, SpawnOwned, SpawnNetworked};
+use crate::networking::player::PlayerId;
 use crate::networking::send_input::send_player_input;
 use crate::networking::send_player_position::send_player_position;
-use crate::player::spawn_player;
+use crate::player::{spawn_player, spawn_player_facade};
 
 pub fn main(socket_addr: String) {
     let remote_addr: SocketAddr = "127.0.0.1:8080".parse().expect("could not parse addr");
@@ -37,6 +38,7 @@ pub fn main(socket_addr: String) {
         })
         .insert_resource(ClearColor(Color::hex("D4F5F5").unwrap()))
         .insert_resource(RapierConfiguration::default())
+        .insert_resource(PlayerId(0))
         .add_plugins(DefaultPlugins)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(FpsControllerPlugin)
@@ -48,11 +50,16 @@ pub fn main(socket_addr: String) {
         .run();
 }
 
-fn wait_for_spawn_player(mut commands: Commands, mut messages: EventReader<Message>, ) {
+fn wait_for_spawn_player(mut commands: Commands, mut messages: EventReader<Message>, mut local_player_id: ResMut<PlayerId>, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>) {
     for message in messages.iter() {
+        println!("{:?}", message);
         match message {
-            SpawnPlayer(.., pos) => spawn_player(*pos, &mut commands),
-                _ => ()
+            SpawnOwned(id, pos) => {
+                spawn_player(*id, *pos, &mut commands);
+                *local_player_id = *id;
+            },
+            SpawnNetworked(id, pos) => spawn_player_facade(*id, *pos, &mut commands, &mut meshes, &mut materials),
+            _ => ()
         }
     }
 }

@@ -4,8 +4,16 @@ use std::net::SocketAddr;
 use bevy::ecs::system::Resource;
 use bevy::prelude::Component;
 use rand::Rng;
+use serde_derive::Serialize;
+use serde_derive::Deserialize;
 
-pub type PlayerId = i16;
+#[derive(PartialEq, Debug, Serialize, Hash, Deserialize, Resource, Eq, Clone, Copy)]
+pub struct PlayerId(pub u8);
+
+#[derive(Component)]
+pub struct NetworkObject {
+    pub player_id: PlayerId
+}
 
 #[derive(Resource, Default, Debug)]
 pub struct Players {
@@ -43,7 +51,7 @@ impl Players {
         let mut rng = rand::thread_rng();
 
         // Generate a random i16 value in the range [-32768, 32767]
-        return rng.gen();
+        return PlayerId(rng.gen());
     }
 }
 

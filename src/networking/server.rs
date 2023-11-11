@@ -1,5 +1,6 @@
 use std::{net::UdpSocket, time::Duration};
 use std::fmt::Display;
+use std::process::id;
 
 use bevy::{app::ScheduleRunnerPlugin, log::LogPlugin, prelude::*};
 use bevy::log::Level;
@@ -7,7 +8,7 @@ use bevy::time::TimePlugin;
 use crate::networking::{NetworkEvent, ServerPlugin, Transport};
 use crate::networking::message::{Message, serialize};
 use crate::networking::message::Message::NetworkInput;
-use crate::networking::player::Players;
+use crate::networking::player::{PlayerId, Players};
 use crate::networking::systems::Socket;
 
 const LISTEN_ADDRESS: &str = "127.0.0.1:8080";
@@ -45,7 +46,24 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
         match event {
             NetworkEvent::Connected(handle) => {
                 info!("{}: connected!", handle);
-                let message = Message::SpawnPlayer(Vec3
+                let player_id: PlayerId = Players::generate_id();
+
+                let other_clients_message = Message::SpawnNetworked(
+                    player_id,
+                    Vec3 {
+                    x: 1f32,
+                    y: 1f32,
+                    z: 1f32
+                    }
+                );
+
+                for player_addr in players.players.values() {
+                    transport.send(*player_addr, &serialize(other_clients_message));
+                }
+
+                players.add_player(player_id, *handle);
+
+                let message = Message::SpawnOwned(player_id,Vec3
                                                    {
                                                        x: 1f32,
                                                        y: 1f32,
@@ -54,10 +72,6 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
                 );
 
                 transport.send(*handle, &serialize(message));
-
-                let player_id: i16 = Players::generate_id();
-
-                players.add_player(player_id, *handle);
 
                 println!("{:?}", players)
             }

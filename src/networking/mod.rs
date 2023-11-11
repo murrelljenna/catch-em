@@ -3,7 +3,7 @@ mod raw_message;
 mod systems;
 mod transport;
 mod message;
-mod player;
+pub(crate) mod player;
 pub mod server;
 pub mod client;
 mod send_input;

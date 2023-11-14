@@ -27,7 +27,7 @@ pub fn main() {
     App::new()
         // run the server at a reduced tick rate (100 ticks per minute)
         .add_plugins(ScheduleRunnerPlugin::run_loop(Duration::from_secs_f32(
-            60. / 100.,
+            60. / 500.,
         )))
         .insert_resource(Socket(socket))
         .insert_resource(Players::default())
@@ -79,7 +79,14 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
                 info!("{}: disconnected!", handle);
             }
             NetworkEvent::RawMessage(handle, msg) => {
-                info!("{} sent a message: {:?}", handle, msg);
+                match msg {
+                    Message::PlayerPosition(player_id, pos) => {
+                        players.for_all_except(*player_id, |addr| {
+                            transport.send(*addr, &serialize(Message::PlayerPosition(*player_id, *pos)));
+                        });
+                    }
+                    _ => info!("{} sent a message: {:?}", handle, msg)
+                }
             }
             NetworkEvent::SendError(err, msg) => {
                 error!(

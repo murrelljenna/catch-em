@@ -8,8 +8,8 @@ use crate::networking::{ClientPlugin, NetworkEvent};
 use crate::networking::systems::{auto_heartbeat_system, Socket, SocketAddress};
 use crate::{display_text, manage_cursor, respawn, scene_colliders, setup};
 use crate::networking::message::{Message, serialize};
-use crate::networking::message::Message::{NetworkInput, SpawnOwned, SpawnNetworked};
-use crate::networking::player::PlayerId;
+use crate::networking::message::Message::{NetworkInput, SpawnOwned, SpawnNetworked, PlayerPosition};
+use crate::networking::player::{NetworkObject, PlayerId};
 use crate::networking::send_input::send_player_input;
 use crate::networking::send_player_position::send_player_position;
 use crate::player::{spawn_player, spawn_player_facade};
@@ -50,7 +50,17 @@ pub fn main(socket_addr: String) {
         .run();
 }
 
-fn wait_for_spawn_player(mut commands: Commands, mut messages: EventReader<Message>, mut local_player_id: ResMut<PlayerId>, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>) {
+/*fn update_other_player_pos(mut commands: Commands, mut messages: EventReader<Message>, ) {
+    for message in messages.iter() {
+        println!("Received some sort of messages.");
+        match message {
+,
+            _ => ()
+        }
+        }
+}*/
+
+fn wait_for_spawn_player(mut commands: Commands, mut messages: EventReader<Message>, mut local_player_id: ResMut<PlayerId>, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>, mut networked_objects: Query<(&NetworkObject, &mut Transform)>, timer: Res<Time>) {
     for message in messages.iter() {
         println!("{:?}", message);
         match message {
@@ -59,16 +69,30 @@ fn wait_for_spawn_player(mut commands: Commands, mut messages: EventReader<Messa
                 *local_player_id = *id;
             },
             SpawnNetworked(id, pos) => spawn_player_facade(*id, *pos, &mut commands, &mut meshes, &mut materials),
+            PlayerPosition(received_player_id, pos) => {
+            println!("Received player pos message");
+            for (networked_object, mut transform) in networked_objects.iter_mut() {
+            println!("Iterating over net objects.");
+            if networked_object.player_id == *received_player_id {
+                let incremental_adjust = 0.8 * timer.delta_seconds();
+                let old_translation = transform.translation;
+                transform.translation = old_translation.lerp(*pos, incremental_adjust);
+            println!("Found the player's object. Updating pos.")
+            }
+            }
+            }
             _ => ()
         }
     }
 }
 
+//fn update_player_position(mut commands: Commands, mut messages: EventReader<Message>)
+
 fn connection_handler(mut events: EventReader<NetworkEvent>, mut messages: EventWriter<Message>) {
     for event in events.iter() {
         match event {
             NetworkEvent::RawMessage(_, msg) => {
-                info!("server sent a message: {:?}", msg);
+                //info!("server sent a message: {:?}", msg);
                 messages.send(*msg);
             }
             NetworkEvent::SendError(err, msg) => {

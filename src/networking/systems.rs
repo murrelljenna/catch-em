@@ -86,6 +86,7 @@ pub fn send_packet_system(
     mut events: EventWriter<NetworkEvent>,
     mut transport: ResMut<Transport>,
 ) {
+    println!("Har dar my cutie bar");
     let messages = transport.drain_messages_to_send(|_| true);
     for message in messages {
         if let Err(e) = socket.0.send_to(&message.payload, message.destination) {

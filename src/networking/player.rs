@@ -21,26 +21,15 @@ pub struct Players {
 }
 
 impl Players {
-    pub fn except_id(self, id: PlayerId) -> Players {
-        let mut copied_map = HashMap::new();
-        for (key, value) in &self.players {
-            if *key != id {
-                copied_map.insert(key.clone(), *value);
+    pub fn for_all_except<F>(&self, excluded_id: PlayerId, mut action: F)
+        where
+            F: FnMut(&SocketAddr),
+    {
+        for (player_id, value) in &self.players {
+            if *player_id != excluded_id {
+                action(value);
             }
         }
-
-        return Players {players: copied_map };
-    }
-
-    pub fn except_addr(self, socket_addr: SocketAddr) -> Players {
-        let mut copied_map = HashMap::new();
-        for (key, value) in &self.players {
-            if *value != socket_addr {
-                copied_map.insert(key.clone(), *value);
-            }
-        }
-
-        return Players {players: copied_map };
     }
 
     pub fn add_player(&mut self, id: PlayerId, addr: SocketAddr) {

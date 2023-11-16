@@ -73,7 +73,7 @@ fn wait_for_spawn_player(mut commands: Commands, mut messages: EventReader<Messa
             println!("Received player pos message");
             for (networked_object, mut transform) in networked_objects.iter_mut() {
             println!("Iterating over net objects.");
-            if networked_object.player_id == *received_player_id {
+            if networked_object.owner == *received_player_id {
                 let incremental_adjust = 0.8 * timer.delta_seconds();
                 let old_translation = transform.translation;
                 transform.translation = old_translation.lerp(*pos, incremental_adjust);

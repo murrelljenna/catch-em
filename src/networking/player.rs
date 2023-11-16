@@ -12,7 +12,7 @@ pub struct PlayerId(pub u8);
 
 #[derive(Component)]
 pub struct NetworkObject {
-    pub player_id: PlayerId
+    pub owner: PlayerId
 }
 
 #[derive(Resource, Default, Debug)]

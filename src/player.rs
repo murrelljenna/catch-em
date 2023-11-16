@@ -13,7 +13,7 @@ const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 pub(crate) fn spawn_player_facade(id: PlayerId, pos: Vec3, commands: &mut Commands, mut meshes: &mut ResMut<Assets<Mesh>>, mut materials: &mut ResMut<Assets<StandardMaterial>>,) {
     commands.spawn((
         Collider::capsule(pos, pos * 1.5, 0.5),
-        NetworkObject { player_id: id },
+        NetworkObject { owner: id },
         LockedAxes::ROTATION_LOCKED,
         ActiveEvents::COLLISION_EVENTS,
         Friction {
@@ -78,6 +78,6 @@ pub(crate) fn spawn_player(id: PlayerId, pos: Vec3, commands: &mut Commands) {
             air_acceleration: 80.0,
             ..default()
         }},
-        (NetworkObject { player_id: id })
+        (NetworkObject { owner: id })
     ));
 }

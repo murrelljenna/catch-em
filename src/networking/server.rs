@@ -27,7 +27,7 @@ pub fn main() {
     App::new()
         // run the server at a reduced tick rate (100 ticks per minute)
         .add_plugins(ScheduleRunnerPlugin::run_loop(Duration::from_secs_f32(
-            60. / 500.,
+            1. / 30.,
         )))
         .insert_resource(Socket(socket))
         .insert_resource(Players::default())

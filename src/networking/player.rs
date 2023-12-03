@@ -2,6 +2,7 @@ use core::fmt;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use bevy::ecs::system::Resource;
+use bevy::math::Vec3;
 use bevy::prelude::Component;
 use rand::Rng;
 use serde_derive::Serialize;
@@ -12,7 +13,17 @@ pub struct PlayerId(pub u8);
 
 #[derive(Component)]
 pub struct NetworkObject {
+    pub id: u8,
     pub owner: PlayerId
+}
+
+impl NetworkObject {
+    pub fn generate_id() -> u8 {
+        let mut rng = rand::thread_rng();
+
+        // Generate a random i16 value in the range [-32768, 32767]
+        return rng.gen();
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Copy, Clone)]
@@ -23,6 +34,11 @@ pub enum NetworkObjectType {
 #[derive(Resource, Default, Debug)]
 pub struct Players {
     pub players: HashMap<PlayerId, SocketAddr>
+}
+
+#[derive(Resource, Default, Debug)]
+pub struct NetworkObjects {
+    pub objects: HashMap<u8, Vec3>
 }
 
 impl Players {

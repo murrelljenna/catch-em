@@ -60,20 +60,20 @@ pub fn main(socket_addr: String) {
         }
 }*/
 
-fn spawn_network_object(object_type: &NetworkObjectType, id: PlayerId, pos: Vec3, mut commands: &mut Commands) {
+fn spawn_network_object(object_type: &NetworkObjectType, object_id: u8, id: PlayerId, pos: Vec3, mut commands: &mut Commands) {
     match object_type {
         NetworkObjectType::Player => {
-            spawn_player(id, pos, &mut commands);
+            spawn_player(id, object_id, pos, &mut commands);
         }
     }
 }
 
 fn spawn_network_facade_object(
-    object_type: &NetworkObjectType, id: PlayerId, pos: Vec3, mut commands: &mut Commands, mut meshes: &mut ResMut<Assets<Mesh>>, mut materials: &mut ResMut<Assets<StandardMaterial>>
+    object_type: &NetworkObjectType, object_id: u8, id: PlayerId, pos: Vec3, mut commands: &mut Commands, mut meshes: &mut ResMut<Assets<Mesh>>, mut materials: &mut ResMut<Assets<StandardMaterial>>
 ) {
     match object_type {
         NetworkObjectType::Player => {
-            spawn_player_facade(id, pos, &mut commands, &mut meshes, &mut materials);
+            spawn_player_facade(id, object_id, pos, &mut commands, &mut meshes, &mut materials);
         }
     }
 }
@@ -82,12 +82,12 @@ fn wait_for_spawn_player(mut commands: Commands, mut messages: EventReader<Messa
     for message in messages.iter() {
         println!("{:?}", message);
         match message {
-            SpawnOwned(id, pos, object_type) => {
-                spawn_network_object(object_type, *id, *pos, &mut commands);
+            SpawnOwned(id, pos, object_type, object_id) => {
+                spawn_network_object(object_type, *object_id, *id, *pos, &mut commands);
                 *local_player_id = *id;
             },
-            SpawnNetworked(id, pos, object_type) => spawn_network_facade_object(object_type, *id, *pos, &mut commands, &mut meshes, &mut materials),
-            PlayerPosition(received_player_id, pos) => {
+            SpawnNetworked(id, pos, object_type, object_id) => spawn_network_facade_object(object_type, *object_id, *id, *pos, &mut commands, &mut meshes, &mut materials),
+            PlayerPosition(received_player_id, pos, object_id) => {
             println!("Received player pos message");
             for (networked_object, mut transform) in networked_objects.iter_mut() {
             println!("Iterating over net objects.");

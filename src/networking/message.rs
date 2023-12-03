@@ -11,9 +11,9 @@ use crate::networking::player::{NetworkObjectType, PlayerId};
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Event, Copy, Clone)]
 pub enum Message {
-    SpawnNetworked(PlayerId, Vec3, NetworkObjectType),
-    SpawnOwned(PlayerId, Vec3, NetworkObjectType),
-    PlayerPosition(PlayerId, Vec3),
+    SpawnNetworked(PlayerId, Vec3, NetworkObjectType, u8),
+    SpawnOwned(PlayerId, Vec3, NetworkObjectType, u8),
+    PlayerPosition(PlayerId, Vec3, u8),
     NetworkInput {
         w: bool,
         s: bool,

@@ -8,7 +8,7 @@ use bevy::time::TimePlugin;
 use crate::networking::{NetworkEvent, ServerPlugin, Transport};
 use crate::networking::message::{Message, serialize};
 use crate::networking::message::Message::NetworkInput;
-use crate::networking::player::{NetworkObjectType, PlayerId, Players};
+use crate::networking::player::{NetworkObject, NetworkObjects, NetworkObjectType, PlayerId, Players};
 use crate::networking::systems::Socket;
 
 const LISTEN_ADDRESS: &str = "127.0.0.1:8080";
@@ -31,6 +31,7 @@ pub fn main() {
         )))
         .insert_resource(Socket(socket))
         .insert_resource(Players::default())
+        .insert_resource(NetworkObjects::default())
         .add_plugins(TimePlugin::default())
         .add_plugins(LogPlugin {
             filter: "".to_string(),
@@ -41,12 +42,13 @@ pub fn main() {
         .run();
 }
 
-fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResMut<Transport>, mut players: ResMut<Players>) {
+fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResMut<Transport>, mut players: ResMut<Players>, mut network_objects: ResMut<NetworkObjects>) {
     for event in events.iter() {
         match event {
             NetworkEvent::Connected(handle) => {
                 info!("{}: connected!", handle);
                 let player_id: PlayerId = Players::generate_id();
+                let obj_id = NetworkObject::generate_id();
 
                 let other_clients_message = Message::SpawnNetworked(
                     player_id,
@@ -55,7 +57,8 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
                     y: 1f32,
                     z: 1f32
                     },
-                    NetworkObjectType::Player
+                    NetworkObjectType::Player,
+                    obj_id
                 );
 
                 for player_addr in players.players.values() {
@@ -70,8 +73,17 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
                                                        y: 1f32,
                                                        z: 1f32
                                                    },
-                                                  NetworkObjectType::Player
+                                                  NetworkObjectType::Player,
+                    obj_id
                 );
+
+
+                network_objects.objects.insert(obj_id, Vec3
+                {
+                    x: 1f32,
+                    y: 1f32,
+                    z: 1f32
+                });
 
                 transport.send(*handle, &serialize(message));
 
@@ -82,10 +94,12 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
             }
             NetworkEvent::RawMessage(handle, msg) => {
                 match msg {
-                    Message::PlayerPosition(player_id, pos) => {
+                    Message::PlayerPosition(player_id, pos, object_id) => {
                         players.for_all_except(*player_id, |addr| {
-                            transport.send(*addr, &serialize(Message::PlayerPosition(*player_id, *pos)));
+                            transport.send(*addr, &serialize(Message::PlayerPosition(*player_id, *pos, *object_id)));
                         });
+
+                        network_objects.objects.insert(*object_id, *pos);
                     }
                     _ => info!("{} sent a message: {:?}", handle, msg)
                 }

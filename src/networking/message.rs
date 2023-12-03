@@ -7,12 +7,12 @@ use serde_derive::Deserialize;
 use bevy::ecs::event::Event;
 use crate::networking::message::Message::SpawnOwned;
 use crate::networking::message::Message::SpawnNetworked;
-use crate::networking::player::PlayerId;
+use crate::networking::player::{NetworkObjectType, PlayerId};
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Event, Copy, Clone)]
 pub enum Message {
-    SpawnNetworked(PlayerId, Vec3),
-    SpawnOwned(PlayerId, Vec3),
+    SpawnNetworked(PlayerId, Vec3, NetworkObjectType),
+    SpawnOwned(PlayerId, Vec3, NetworkObjectType),
     PlayerPosition(PlayerId, Vec3),
     NetworkInput {
         w: bool,

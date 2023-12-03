@@ -8,7 +8,7 @@ use bevy::time::TimePlugin;
 use crate::networking::{NetworkEvent, ServerPlugin, Transport};
 use crate::networking::message::{Message, serialize};
 use crate::networking::message::Message::NetworkInput;
-use crate::networking::player::{PlayerId, Players};
+use crate::networking::player::{NetworkObjectType, PlayerId, Players};
 use crate::networking::systems::Socket;
 
 const LISTEN_ADDRESS: &str = "127.0.0.1:8080";
@@ -54,7 +54,8 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
                     x: 1f32,
                     y: 1f32,
                     z: 1f32
-                    }
+                    },
+                    NetworkObjectType::Player
                 );
 
                 for player_addr in players.players.values() {
@@ -68,7 +69,8 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
                                                        x: 1f32,
                                                        y: 1f32,
                                                        z: 1f32
-                                                   }
+                                                   },
+                                                  NetworkObjectType::Player
                 );
 
                 transport.send(*handle, &serialize(message));

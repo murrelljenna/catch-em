@@ -15,6 +15,11 @@ pub struct NetworkObject {
     pub owner: PlayerId
 }
 
+#[derive(PartialEq, Debug, Serialize, Deserialize, Copy, Clone)]
+pub enum NetworkObjectType {
+    Player
+}
+
 #[derive(Resource, Default, Debug)]
 pub struct Players {
     pub players: HashMap<PlayerId, SocketAddr>

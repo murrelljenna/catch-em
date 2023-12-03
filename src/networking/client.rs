@@ -9,7 +9,7 @@ use crate::networking::systems::{auto_heartbeat_system, Socket, SocketAddress};
 use crate::{display_text, manage_cursor, respawn, scene_colliders, setup};
 use crate::networking::message::{Message, serialize};
 use crate::networking::message::Message::{NetworkInput, SpawnOwned, SpawnNetworked, PlayerPosition};
-use crate::networking::player::{NetworkObject, PlayerId};
+use crate::networking::player::{NetworkObject, NetworkObjectType, PlayerId};
 use crate::networking::send_input::send_player_input;
 use crate::networking::send_player_position::send_player_position;
 use crate::player::{spawn_player, spawn_player_facade};
@@ -60,15 +60,33 @@ pub fn main(socket_addr: String) {
         }
 }*/
 
+fn spawn_network_object(object_type: &NetworkObjectType, id: PlayerId, pos: Vec3, mut commands: &mut Commands) {
+    match object_type {
+        NetworkObjectType::Player => {
+            spawn_player(id, pos, &mut commands);
+        }
+    }
+}
+
+fn spawn_network_facade_object(
+    object_type: &NetworkObjectType, id: PlayerId, pos: Vec3, mut commands: &mut Commands, mut meshes: &mut ResMut<Assets<Mesh>>, mut materials: &mut ResMut<Assets<StandardMaterial>>
+) {
+    match object_type {
+        NetworkObjectType::Player => {
+            spawn_player_facade(id, pos, &mut commands, &mut meshes, &mut materials);
+        }
+    }
+}
+
 fn wait_for_spawn_player(mut commands: Commands, mut messages: EventReader<Message>, mut local_player_id: ResMut<PlayerId>, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>, mut networked_objects: Query<(&NetworkObject, &mut Transform)>, timer: Res<Time>) {
     for message in messages.iter() {
         println!("{:?}", message);
         match message {
-            SpawnOwned(id, pos) => {
-                spawn_player(*id, *pos, &mut commands);
+            SpawnOwned(id, pos, object_type) => {
+                spawn_network_object(object_type, *id, *pos, &mut commands);
                 *local_player_id = *id;
             },
-            SpawnNetworked(id, pos) => spawn_player_facade(*id, *pos, &mut commands, &mut meshes, &mut materials),
+            SpawnNetworked(id, pos, object_type) => spawn_network_facade_object(object_type, *id, *pos, &mut commands, &mut meshes, &mut materials),
             PlayerPosition(received_player_id, pos) => {
             println!("Received player pos message");
             for (networked_object, mut transform) in networked_objects.iter_mut() {

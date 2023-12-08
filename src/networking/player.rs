@@ -11,10 +11,11 @@ use serde_derive::Deserialize;
 #[derive(PartialEq, Debug, Serialize, Hash, Deserialize, Resource, Eq, Clone, Copy)]
 pub struct PlayerId(pub u8);
 
-#[derive(Component)]
+#[derive(Component, Debug, Hash, PartialEq, Eq)]
 pub struct NetworkObject {
     pub id: u8,
-    pub owner: PlayerId
+    pub owner: PlayerId,
+    pub object_type: NetworkObjectType
 }
 
 impl NetworkObject {
@@ -26,7 +27,7 @@ impl NetworkObject {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize, Copy, Clone)]
+#[derive(PartialEq, Debug, Serialize, Deserialize, Copy, Clone, Hash, Eq)]
 pub enum NetworkObjectType {
     Player
 }
@@ -38,7 +39,7 @@ pub struct Players {
 
 #[derive(Resource, Default, Debug)]
 pub struct NetworkObjects {
-    pub objects: HashMap<u8, Vec3>
+    pub objects: HashMap<NetworkObject, Vec3>
 }
 
 impl Players {

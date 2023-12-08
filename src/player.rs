@@ -6,14 +6,14 @@ use bevy::{
 use bevy_rapier3d::prelude::*;
 
 use bevy_fps_controller::controller::*;
-use crate::networking::player::{NetworkObject, PlayerId, Players};
+use crate::networking::player::{NetworkObject, NetworkObjectType, PlayerId, Players};
 
 const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 
 pub(crate) fn spawn_player_facade(id: PlayerId, object_id: u8, pos: Vec3, commands: &mut Commands, mut meshes: &mut ResMut<Assets<Mesh>>, mut materials: &mut ResMut<Assets<StandardMaterial>>,) {
     commands.spawn((
         Collider::capsule(pos, pos * 1.5, 0.5),
-        NetworkObject { id: object_id, owner: id },
+        NetworkObject { id: object_id, owner: id, object_type: NetworkObjectType::Player },
         LockedAxes::ROTATION_LOCKED,
         ActiveEvents::COLLISION_EVENTS,
         Friction {
@@ -78,6 +78,6 @@ pub(crate) fn spawn_player(id: PlayerId, object_id: u8, pos: Vec3, commands: &mu
             air_acceleration: 80.0,
             ..default()
         }},
-        (NetworkObject { id: object_id, owner: id })
+        (NetworkObject { id: object_id, owner: id, object_type: NetworkObjectType::Player })
     ));
 }

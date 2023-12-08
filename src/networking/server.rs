@@ -77,8 +77,21 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
                     obj_id
                 );
 
+                for (network_obj, value) in network_objects.objects.iter() {
+                    transport.send(*handle, &serialize(Message::SpawnNetworked(
+                        network_obj.owner,
+                        *value,
+                            network_obj.object_type,
+                        network_obj.id
+                    )))
+                }
 
-                network_objects.objects.insert(obj_id, Vec3
+
+                network_objects.objects.insert(NetworkObject {
+                    id: obj_id,
+                    owner: player_id,
+                    object_type: NetworkObjectType::Player
+                }, Vec3
                 {
                     x: 1f32,
                     y: 1f32,
@@ -99,7 +112,11 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
                             transport.send(*addr, &serialize(Message::PlayerPosition(*player_id, *pos, *object_id)));
                         });
 
-                        network_objects.objects.insert(*object_id, *pos);
+                        network_objects.objects.insert(NetworkObject{
+                            id: obj_id,
+                            owner: *player_id,
+                            object_type>
+                        }, *pos);
                     }
                     _ => info!("{} sent a message: {:?}", handle, msg)
                 }

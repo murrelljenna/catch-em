@@ -11,7 +11,7 @@ use serde_derive::Deserialize;
 #[derive(PartialEq, Debug, Serialize, Hash, Deserialize, Resource, Eq, Clone, Copy)]
 pub struct PlayerId(pub u8);
 
-#[derive(Component, Debug, Hash, PartialEq, Eq)]
+#[derive(Component, Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub struct NetworkObject {
     pub id: u8,
     pub owner: PlayerId,

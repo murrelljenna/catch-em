@@ -112,10 +112,12 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
                             transport.send(*addr, &serialize(Message::PlayerPosition(*player_id, *pos, *object_id)));
                         });
 
+                        let net_obj = network_objects.objects.keys().find(|net_obj| net_obj.id == *object_id).expect("Invalid id sent by client").clone();
+
                         network_objects.objects.insert(NetworkObject{
-                            id: obj_id,
+                            id: net_obj.id,
                             owner: *player_id,
-                            object_type>
+                            object_type: net_obj.object_type
                         }, *pos);
                     }
                     _ => info!("{} sent a message: {:?}", handle, msg)

@@ -30,23 +30,3 @@ pub fn serialize(message: Message) -> Bytes {
 pub fn deserialize(bytes: Bytes) -> Message {
     serde_cbor::from_slice(&bytes).expect("Deserialization failed")
 }
-
-#[cfg(test)]
-mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
-
-    /*#[test]
-    fn test_extract_floats_from_bytes_insufficient_bytes() {
-        let byte_array: [u8; 8] = [
-            63, 128, 0, 0,     // Represents the float 1.0
-            64, 0, 0, 0,       // Represents the float 2.0
-        ];
-
-        let byte_ptr: *const u8 = &byte_array as *const _;
-
-        let result = deserialize(Bytes::from(byte_ptr));
-
-        assert_eq!(result, None);
-    }*/
-}

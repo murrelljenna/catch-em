@@ -50,16 +50,6 @@ pub fn main(socket_addr: String) {
         .run();
 }
 
-/*fn update_other_player_pos(mut commands: Commands, mut messages: EventReader<Message>, ) {
-    for message in messages.iter() {
-        println!("Received some sort of messages.");
-        match message {
-,
-            _ => ()
-        }
-        }
-}*/
-
 fn spawn_network_object(object_type: &NetworkObjectType, object_id: u8, id: PlayerId, pos: Vec3, mut commands: &mut Commands) {
     match object_type {
         NetworkObjectType::Player => {

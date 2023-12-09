@@ -47,7 +47,7 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
         match event {
             NetworkEvent::Connected(handle) => {
                 info!("{}: connected!", handle);
-                let player_id: PlayerId = Players::generate_id();
+
                 let obj_id = NetworkObject::generate_id();
 
                 let other_clients_message = Message::SpawnNetworked(

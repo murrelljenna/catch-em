@@ -7,33 +7,47 @@
     is completed.
  */
 
-#[derive(Resource)]
+use std::net::SocketAddr;
+use bevy::prelude::{EventReader, Local, Res, ResMut};
+use bevy::ecs::system::Resource;
+use crate::networking::message::{Message, serialize};
+use crate::networking::message::Message::{ClientAcknowledgement, ServerAcknowledgement};
+use crate::networking::player::{PlayerId, Players};
+use crate::networking::systems::Socket;
+use crate::networking::Transport;
+use serde::Serialize;
+
+#[derive(Resource, Debug)]
 pub enum ConnectionStatus {
     Initial, // Client has just sent connection to server
     Acknowledged, // Client has received server acknowledgement
     Complete // Client has sent server acknowledgement
 }
 
-#[derive(Resource)]
-pub struct NetworkInfo {
-    server_handle: &SocketAddr
+pub fn listen_handshake_events(mut messages: EventReader<Message>, socket: Res<Socket>, mut transport: ResMut<Transport>, mut local_player_id: ResMut<PlayerId>, mut connection_status: ResMut<ConnectionStatus>) {
+    for message in messages.iter() {
+        match message {
+            ServerAcknowledgement(id) => client_handshake(id, &socket, &mut transport, &mut local_player_id, &mut connection_status),
+            _ => ()
+        }
+    };
 }
 
-
-pub fn serverHandshake(handle: &SocketAddr, mut transport: ResMut<Transport>) {
+pub fn server_handshake(handle: &SocketAddr, transport: &mut ResMut<Transport>) {
     // Generate player id for client
     let player_id: PlayerId = Players::generate_id();
     // Send client this id
-    let message: ServerAcknowledgement = ServerAcknowledgment(player_id);
+    let message = Message::ServerAcknowledgement(player_id);
 
     transport.send(*handle, &serialize(message));
 }
 
-pub fn clientHandshake(assigned_player_id: &PlayerId, mut transport: ResMut<Transport>, mut local_player_id: ResMut<PlayerId>) {
-    *local_player_id = *assigned_player_id;
+fn client_handshake(assigned_player_id: &PlayerId, socket: &Res<Socket>, mut transport: &mut ResMut<Transport>, mut local_player_id: &mut ResMut<PlayerId>, mut connection_status: &mut ResMut<ConnectionStatus>) {
+    **local_player_id = *assigned_player_id;
+    **connection_status = ConnectionStatus::Complete;
+    println!("Doing client handshake");
+    let message = ClientAcknowledgement(*assigned_player_id);
 
-
+    transport.send(socket.0.peer_addr().expect("Socket address could not be found"), &serialize(message));
 }
-
-pub fn serverCompleteConnection(mut players: ResMut<Players>)
 

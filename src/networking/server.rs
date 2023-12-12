@@ -6,6 +6,7 @@ use bevy::{app::ScheduleRunnerPlugin, log::LogPlugin, prelude::*};
 use bevy::log::Level;
 use bevy::time::TimePlugin;
 use crate::networking::{NetworkEvent, ServerPlugin, Transport};
+use crate::networking::handshake::server_handshake;
 use crate::networking::message::{Message, serialize};
 use crate::networking::message::Message::NetworkInput;
 use crate::networking::player::{NetworkObject, NetworkObjects, NetworkObjectType, PlayerId, Players};
@@ -47,58 +48,8 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
         match event {
             NetworkEvent::Connected(handle) => {
                 info!("{}: connected!", handle);
+                server_handshake(handle, &mut transport);
 
-                let obj_id = NetworkObject::generate_id();
-
-                let other_clients_message = Message::SpawnNetworked(
-                    player_id,
-                    Vec3 {
-                    x: 1f32,
-                    y: 1f32,
-                    z: 1f32
-                    },
-                    NetworkObjectType::Player,
-                    obj_id
-                );
-
-                for player_addr in players.players.values() {
-                    transport.send(*player_addr, &serialize(other_clients_message));
-                }
-
-                players.add_player(player_id, *handle);
-
-                let message = Message::SpawnOwned(player_id,Vec3
-                                                   {
-                                                       x: 1f32,
-                                                       y: 1f32,
-                                                       z: 1f32
-                                                   },
-                                                  NetworkObjectType::Player,
-                    obj_id
-                );
-
-                for (network_obj, value) in network_objects.objects.iter() {
-                    transport.send(*handle, &serialize(Message::SpawnNetworked(
-                        network_obj.owner,
-                        *value,
-                            network_obj.object_type,
-                        network_obj.id
-                    )))
-                }
-
-
-                network_objects.objects.insert(NetworkObject {
-                    id: obj_id,
-                    owner: player_id,
-                    object_type: NetworkObjectType::Player
-                }, Vec3
-                {
-                    x: 1f32,
-                    y: 1f32,
-                    z: 1f32
-                });
-
-                transport.send(*handle, &serialize(message));
 
                 println!("{:?}", players)
             }
@@ -119,7 +70,60 @@ fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResM
                             owner: *player_id,
                             object_type: net_obj.object_type
                         }, *pos);
-                    }
+                    },
+                    Message::ClientAcknowledgement(player_id) => {
+                        let obj_id = NetworkObject::generate_id();
+
+                        let other_clients_message = Message::Spawn(
+                            *player_id,
+                            Vec3 {
+                                x: 1f32,
+                                y: 1f32,
+                                z: 1f32
+                            },
+                            NetworkObjectType::Player,
+                            obj_id
+                        );
+
+                        for player_addr in players.players.values() {
+                            transport.send(*player_addr, &serialize(other_clients_message));
+                        }
+
+                        players.add_player(*player_id, *handle);
+
+                        let message = Message::Spawn(*player_id,Vec3
+                        {
+                            x: 1f32,
+                            y: 1f32,
+                            z: 1f32
+                        },
+                                                          NetworkObjectType::Player,
+                                                          obj_id
+                        );
+
+                        for (network_obj, value) in network_objects.objects.iter() {
+                            transport.send(*handle, &serialize(Message::Spawn(
+                                network_obj.owner,
+                                *value,
+                                network_obj.object_type,
+                                network_obj.id
+                            )))
+                        }
+
+
+                        network_objects.objects.insert(NetworkObject {
+                            id: obj_id,
+                            owner: *player_id,
+                            object_type: NetworkObjectType::Player
+                        }, Vec3
+                                                       {
+                                                           x: 1f32,
+                                                           y: 1f32,
+                                                           z: 1f32
+                                                       });
+
+                        transport.send(*handle, &serialize(message));
+                    },
                     _ => info!("{} sent a message: {:?}", handle, msg)
                 }
             }

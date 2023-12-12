@@ -7,6 +7,7 @@ use bevy::prelude::Component;
 use rand::Rng;
 use serde_derive::Serialize;
 use serde_derive::Deserialize;
+use crate::networking::handshake::ConnectionStatus;
 
 #[derive(PartialEq, Debug, Serialize, Hash, Deserialize, Resource, Eq, Clone, Copy)]
 pub struct PlayerId(pub u8);

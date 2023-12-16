@@ -1,13 +1,13 @@
-use core::fmt;
-use std::collections::HashMap;
-use std::net::SocketAddr;
+use crate::networking::handshake::ConnectionStatus;
 use bevy::ecs::system::Resource;
 use bevy::math::Vec3;
 use bevy::prelude::Component;
+use core::fmt;
 use rand::Rng;
-use serde_derive::Serialize;
 use serde_derive::Deserialize;
-use crate::networking::handshake::ConnectionStatus;
+use serde_derive::Serialize;
+use std::collections::HashMap;
+use std::net::SocketAddr;
 
 #[derive(PartialEq, Debug, Serialize, Hash, Deserialize, Resource, Eq, Clone, Copy)]
 pub struct PlayerId(pub u8);
@@ -16,7 +16,7 @@ pub struct PlayerId(pub u8);
 pub struct NetworkObject {
     pub id: u8,
     pub owner: PlayerId,
-    pub object_type: NetworkObjectType
+    pub object_type: NetworkObjectType,
 }
 
 impl NetworkObject {
@@ -30,23 +30,23 @@ impl NetworkObject {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Copy, Clone, Hash, Eq)]
 pub enum NetworkObjectType {
-    Player
+    Player,
 }
 
 #[derive(Resource, Default, Debug)]
 pub struct Players {
-    pub players: HashMap<PlayerId, SocketAddr>
+    pub players: HashMap<PlayerId, SocketAddr>,
 }
 
 #[derive(Resource, Default, Debug)]
 pub struct NetworkObjects {
-    pub objects: HashMap<NetworkObject, Vec3>
+    pub objects: HashMap<NetworkObject, Vec3>,
 }
 
 impl Players {
     pub fn for_all_except<F>(&self, excluded_id: PlayerId, mut action: F)
-        where
-            F: FnMut(&SocketAddr),
+    where
+        F: FnMut(&SocketAddr),
     {
         for (player_id, value) in &self.players {
             if *player_id != excluded_id {
@@ -66,4 +66,3 @@ impl Players {
         return PlayerId(rng.gen());
     }
 }
-

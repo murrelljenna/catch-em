@@ -1,9 +1,9 @@
 use std;
 use std::{io, net::SocketAddr};
 
-use bytes::Bytes;
-use bevy::ecs::event::Event;
 use crate::networking::message::Message;
+use bevy::ecs::event::Event;
+use bytes::Bytes;
 
 use super::raw_message::RawMessage;
 

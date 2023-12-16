@@ -3,10 +3,10 @@ use std::{
     net::{SocketAddr, UdpSocket},
 };
 
+use crate::networking::message::{deserialize, Message};
+use crate::networking::HeartbeatTimer;
 use bevy::prelude::*;
 use bytes::Bytes;
-use crate::networking::HeartbeatTimer;
-use crate::networking::message::{deserialize, Message};
 
 use super::{events::NetworkEvent, transport::Transport, NetworkResource};
 
@@ -53,11 +53,7 @@ pub fn server_recv_packet_system(
         match socket.0.recv_from(&mut buf) {
             Ok((recv_len, address)) => {
                 let payload = Bytes::copy_from_slice(&buf[..recv_len]);
-                if net
-                    .connections
-                    .insert(address, time.elapsed())
-                    .is_none()
-                {
+                if net.connections.insert(address, time.elapsed()).is_none() {
                     // connection established
                     events.send(NetworkEvent::Connected(address));
                 }

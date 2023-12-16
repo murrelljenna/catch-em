@@ -1,14 +1,14 @@
+pub mod client;
 mod events;
-mod raw_message;
-mod systems;
-mod transport;
+mod handshake;
 mod message;
 pub(crate) mod player;
-pub mod server;
-pub mod client;
+mod raw_message;
 mod send_input;
 mod send_player_position;
-mod handshake;
+pub mod server;
+mod systems;
+mod transport;
 
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -68,8 +68,8 @@ impl Plugin for ServerPlugin {
         app.insert_resource(NetworkResource::default())
             .insert_resource(transport::Transport::new())
             .add_event::<events::NetworkEvent>()
-            .add_systems(Update,systems::server_recv_packet_system)
-            .add_systems(Update,systems::send_packet_system)
+            .add_systems(Update, systems::server_recv_packet_system)
+            .add_systems(Update, systems::send_packet_system)
             .add_systems(Update, systems::idle_timeout_system);
     }
 }
@@ -82,7 +82,10 @@ pub struct ClientPlugin;
 impl Plugin for ClientPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(transport::Transport::new())
-            .insert_resource(HeartbeatTimer(Timer::from_seconds(DEFAULT_HEARTBEAT_TICK_RATE_SECS, Default::default())))
+            .insert_resource(HeartbeatTimer(Timer::from_seconds(
+                DEFAULT_HEARTBEAT_TICK_RATE_SECS,
+                Default::default(),
+            )))
             .add_event::<events::NetworkEvent>()
             .add_event::<message::Message>()
             .add_systems(Update, systems::client_recv_packet_system)

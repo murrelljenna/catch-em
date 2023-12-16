@@ -1,16 +1,18 @@
-use std::{net::UdpSocket, time::Duration};
 use std::fmt::Display;
 use std::process::id;
+use std::{net::UdpSocket, time::Duration};
 
-use bevy::{app::ScheduleRunnerPlugin, log::LogPlugin, prelude::*};
+use crate::networking::handshake::server_handshake;
+use crate::networking::message::Message::NetworkInput;
+use crate::networking::message::{serialize, Message};
+use crate::networking::player::{
+    NetworkObject, NetworkObjectType, NetworkObjects, PlayerId, Players,
+};
+use crate::networking::systems::Socket;
+use crate::networking::{NetworkEvent, ServerPlugin, Transport};
 use bevy::log::Level;
 use bevy::time::TimePlugin;
-use crate::networking::{NetworkEvent, ServerPlugin, Transport};
-use crate::networking::handshake::server_handshake;
-use crate::networking::message::{Message, serialize};
-use crate::networking::message::Message::NetworkInput;
-use crate::networking::player::{NetworkObject, NetworkObjects, NetworkObjectType, PlayerId, Players};
-use crate::networking::systems::Socket;
+use bevy::{app::ScheduleRunnerPlugin, log::LogPlugin, prelude::*};
 
 const LISTEN_ADDRESS: &str = "127.0.0.1:8080";
 
@@ -39,94 +41,112 @@ pub fn main() {
             level: Level::INFO,
         })
         .add_plugins(ServerPlugin)
-        .add_systems(Update,connection_handler)
+        .add_systems(Update, connection_handler)
         .run();
 }
 
-fn connection_handler(mut events: EventReader<NetworkEvent>, mut transport: ResMut<Transport>, mut players: ResMut<Players>, mut network_objects: ResMut<NetworkObjects>) {
+fn connection_handler(
+    mut events: EventReader<NetworkEvent>,
+    mut transport: ResMut<Transport>,
+    mut players: ResMut<Players>,
+    mut network_objects: ResMut<NetworkObjects>,
+) {
     for event in events.iter() {
         match event {
             NetworkEvent::Connected(handle) => {
                 info!("{}: connected!", handle);
                 server_handshake(handle, &mut transport);
 
-
                 println!("{:?}", players)
             }
             NetworkEvent::Disconnected(handle) => {
                 info!("{}: disconnected!", handle);
             }
-            NetworkEvent::RawMessage(handle, msg) => {
-                match msg {
-                    Message::PlayerPosition(player_id, pos, object_id) => {
-                        players.for_all_except(*player_id, |addr| {
-                            transport.send(*addr, &serialize(Message::PlayerPosition(*player_id, *pos, *object_id)));
-                        });
+            NetworkEvent::RawMessage(handle, msg) => match msg {
+                Message::PlayerPosition(player_id, pos, object_id) => {
+                    players.for_all_except(*player_id, |addr| {
+                        transport.send(
+                            *addr,
+                            &serialize(Message::PlayerPosition(*player_id, *pos, *object_id)),
+                        );
+                    });
 
-                        let net_obj = network_objects.objects.keys().find(|net_obj| net_obj.id == *object_id).expect("Invalid id sent by client").clone();
+                    let net_obj = network_objects
+                        .objects
+                        .keys()
+                        .find(|net_obj| net_obj.id == *object_id)
+                        .expect("Invalid id sent by client")
+                        .clone();
 
-                        network_objects.objects.insert(NetworkObject{
+                    network_objects.objects.insert(
+                        NetworkObject {
                             id: net_obj.id,
                             owner: *player_id,
-                            object_type: net_obj.object_type
-                        }, *pos);
-                    },
-                    Message::ClientAcknowledgement(player_id) => {
-                        let obj_id = NetworkObject::generate_id();
+                            object_type: net_obj.object_type,
+                        },
+                        *pos,
+                    );
+                }
+                Message::ClientAcknowledgement(player_id) => {
+                    let obj_id = NetworkObject::generate_id();
 
-                        let other_clients_message = Message::Spawn(
-                            *player_id,
-                            Vec3 {
-                                x: 1f32,
-                                y: 1f32,
-                                z: 1f32
-                            },
-                            NetworkObjectType::Player,
-                            obj_id
-                        );
-
-                        for player_addr in players.players.values() {
-                            transport.send(*player_addr, &serialize(other_clients_message));
-                        }
-
-                        players.add_player(*player_id, *handle);
-
-                        let message = Message::Spawn(*player_id,Vec3
-                        {
+                    let other_clients_message = Message::Spawn(
+                        *player_id,
+                        Vec3 {
                             x: 1f32,
                             y: 1f32,
-                            z: 1f32
+                            z: 1f32,
                         },
-                                                          NetworkObjectType::Player,
-                                                          obj_id
-                        );
+                        NetworkObjectType::Player,
+                        obj_id,
+                    );
 
-                        for (network_obj, value) in network_objects.objects.iter() {
-                            transport.send(*handle, &serialize(Message::Spawn(
+                    for player_addr in players.players.values() {
+                        transport.send(*player_addr, &serialize(other_clients_message));
+                    }
+
+                    players.add_player(*player_id, *handle);
+
+                    let message = Message::Spawn(
+                        *player_id,
+                        Vec3 {
+                            x: 1f32,
+                            y: 1f32,
+                            z: 1f32,
+                        },
+                        NetworkObjectType::Player,
+                        obj_id,
+                    );
+
+                    for (network_obj, value) in network_objects.objects.iter() {
+                        transport.send(
+                            *handle,
+                            &serialize(Message::Spawn(
                                 network_obj.owner,
                                 *value,
                                 network_obj.object_type,
-                                network_obj.id
-                            )))
-                        }
+                                network_obj.id,
+                            )),
+                        )
+                    }
 
-
-                        network_objects.objects.insert(NetworkObject {
+                    network_objects.objects.insert(
+                        NetworkObject {
                             id: obj_id,
                             owner: *player_id,
-                            object_type: NetworkObjectType::Player
-                        }, Vec3
-                                                       {
-                                                           x: 1f32,
-                                                           y: 1f32,
-                                                           z: 1f32
-                                                       });
+                            object_type: NetworkObjectType::Player,
+                        },
+                        Vec3 {
+                            x: 1f32,
+                            y: 1f32,
+                            z: 1f32,
+                        },
+                    );
 
-                        transport.send(*handle, &serialize(message));
-                    },
-                    _ => info!("{} sent a message: {:?}", handle, msg)
+                    transport.send(*handle, &serialize(message));
                 }
-            }
+                _ => info!("{} sent a message: {:?}", handle, msg),
+            },
             NetworkEvent::SendError(err, msg) => {
                 error!(
                     "NetworkEvent::SendError (payload [{:?}]): {:?}",

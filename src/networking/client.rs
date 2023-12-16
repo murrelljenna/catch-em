@@ -1,20 +1,22 @@
 use std::net::{SocketAddr, UdpSocket};
 
+use crate::networking::handshake::{listen_handshake_events, ConnectionStatus};
+use crate::networking::message::Message::{
+    NetworkInput, PlayerPosition, ServerAcknowledgement, Spawn,
+};
+use crate::networking::message::{serialize, Message};
+use crate::networking::player::{NetworkObject, NetworkObjectType, PlayerId};
+use crate::networking::send_input::send_player_input;
+use crate::networking::send_player_position::send_player_position;
+use crate::networking::systems::{auto_heartbeat_system, Socket, SocketAddress};
+use crate::networking::{ClientPlugin, NetworkEvent, Transport};
+use crate::player::{spawn_player, spawn_player_facade};
+use crate::{display_text, manage_cursor, respawn, scene_colliders, setup};
 use bevy::{log::LogPlugin, prelude::*};
 use bevy_fps_controller::controller::FpsControllerPlugin;
 use bevy_rapier3d::plugin::{NoUserData, RapierPhysicsPlugin};
 use bevy_rapier3d::prelude::RapierConfiguration;
 use serde::Serialize;
-use crate::networking::{ClientPlugin, NetworkEvent, Transport};
-use crate::networking::systems::{auto_heartbeat_system, Socket, SocketAddress};
-use crate::{display_text, manage_cursor, respawn, scene_colliders, setup};
-use crate::networking::handshake::{ConnectionStatus, listen_handshake_events};
-use crate::networking::message::{Message, serialize};
-use crate::networking::message::Message::{NetworkInput, Spawn, PlayerPosition, ServerAcknowledgement};
-use crate::networking::player::{NetworkObject, NetworkObjectType, PlayerId};
-use crate::networking::send_input::send_player_input;
-use crate::networking::send_player_position::send_player_position;
-use crate::player::{spawn_player, spawn_player_facade};
 
 pub fn main(socket_addr: String) {
     let remote_addr: SocketAddr = "127.0.0.1:8080".parse().expect("could not parse addr");
@@ -34,7 +36,6 @@ pub fn main(socket_addr: String) {
         .insert_resource(ConnectionStatus::Initial)
         .add_plugins(ClientPlugin)
         .add_systems(Update, connection_handler)
-
         .insert_resource(AmbientLight {
             color: Color::WHITE,
             brightness: 0.5,
@@ -46,14 +47,23 @@ pub fn main(socket_addr: String) {
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(FpsControllerPlugin)
         .add_systems(Startup, setup)
-        .add_systems(Update, (manage_cursor, scene_colliders, display_text, respawn))
+        .add_systems(
+            Update,
+            (manage_cursor, scene_colliders, display_text, respawn),
+        )
         .add_systems(Update, auto_heartbeat_system)
         .add_systems(Update, send_player_position)
         .add_systems(Update, listen_events)
         .run();
 }
 
-fn spawn_network_object(object_type: &NetworkObjectType, object_id: u8, id: PlayerId, pos: Vec3, mut commands: &mut Commands) {
+fn spawn_network_object(
+    object_type: &NetworkObjectType,
+    object_id: u8,
+    id: PlayerId,
+    pos: Vec3,
+    mut commands: &mut Commands,
+) {
     println!("Spawning net object");
     match object_type {
         NetworkObjectType::Player => {
@@ -63,25 +73,54 @@ fn spawn_network_object(object_type: &NetworkObjectType, object_id: u8, id: Play
 }
 
 fn spawn_network_facade_object(
-    object_type: &NetworkObjectType, object_id: u8, id: PlayerId, pos: Vec3, mut commands: &mut Commands, mut meshes: &mut ResMut<Assets<Mesh>>, mut materials: &mut ResMut<Assets<StandardMaterial>>
+    object_type: &NetworkObjectType,
+    object_id: u8,
+    id: PlayerId,
+    pos: Vec3,
+    mut commands: &mut Commands,
+    mut meshes: &mut ResMut<Assets<Mesh>>,
+    mut materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
     println!("Spawning facade object");
     match object_type {
         NetworkObjectType::Player => {
-            spawn_player_facade(id, object_id, pos, &mut commands, &mut meshes, &mut materials);
+            spawn_player_facade(
+                id,
+                object_id,
+                pos,
+                &mut commands,
+                &mut meshes,
+                &mut materials,
+            );
         }
     }
 }
 
-fn listen_game_events(mut commands: Commands, mut messages: EventReader<Message>, mut local_player_id: ResMut<PlayerId>, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>, mut networked_objects: Query<(&NetworkObject, &mut Transform)>, timer: Res<Time>) {
+fn listen_game_events(
+    mut commands: Commands,
+    mut messages: EventReader<Message>,
+    mut local_player_id: ResMut<PlayerId>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut networked_objects: Query<(&NetworkObject, &mut Transform)>,
+    timer: Res<Time>,
+) {
     for message in messages.iter() {
         println!("{:?}", message);
         match message {
             Spawn(id, pos, object_type, object_id) if (*id == *local_player_id) => {
                 spawn_network_object(object_type, *object_id, *id, *pos, &mut commands);
                 *local_player_id = *id;
-            },
-            Spawn(id, pos, object_type, object_id) => spawn_network_facade_object(object_type, *object_id, *id, *pos, &mut commands, &mut meshes, &mut materials),
+            }
+            Spawn(id, pos, object_type, object_id) => spawn_network_facade_object(
+                object_type,
+                *object_id,
+                *id,
+                *pos,
+                &mut commands,
+                &mut meshes,
+                &mut materials,
+            ),
             PlayerPosition(received_player_id, pos, object_id) => {
                 println!("Received player pos message");
                 for (networked_object, mut transform) in networked_objects.iter_mut() {
@@ -93,23 +132,46 @@ fn listen_game_events(mut commands: Commands, mut messages: EventReader<Message>
                         println!("Found the player's object. Updating pos.")
                     }
                 }
-            },
+            }
 
-            _ => ()
+            _ => (),
         }
     }
 }
 
-fn listen_events(socket: Res<Socket>, mut commands: Commands, mut transport: ResMut<Transport>, mut messages: EventReader<Message>, mut local_player_id: ResMut<PlayerId>, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>, mut networked_objects: Query<(&NetworkObject, &mut Transform)>, timer: Res<Time>, mut connection_status: ResMut<ConnectionStatus>) {
+fn listen_events(
+    socket: Res<Socket>,
+    mut commands: Commands,
+    mut transport: ResMut<Transport>,
+    mut messages: EventReader<Message>,
+    mut local_player_id: ResMut<PlayerId>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut networked_objects: Query<(&NetworkObject, &mut Transform)>,
+    timer: Res<Time>,
+    mut connection_status: ResMut<ConnectionStatus>,
+) {
     match *connection_status {
-        ConnectionStatus::Initial => listen_handshake_events(messages, socket, transport, local_player_id, connection_status),
-        _ => listen_game_events(commands, messages, local_player_id, meshes, materials, networked_objects, timer)
+        ConnectionStatus::Initial => listen_handshake_events(
+            messages,
+            socket,
+            transport,
+            local_player_id,
+            connection_status,
+        ),
+        _ => listen_game_events(
+            commands,
+            messages,
+            local_player_id,
+            meshes,
+            materials,
+            networked_objects,
+            timer,
+        ),
     }
 }
 
 //fn update_player_position(mut commands: Commands, mut messages: EventReader<Message>)
-
-
 
 fn connection_handler(mut events: EventReader<NetworkEvent>, mut messages: EventWriter<Message>) {
     for event in events.iter() {

@@ -1,24 +1,24 @@
 extern crate core;
 
-mod player;
 mod networking;
+mod player;
 
 use std::env;
 use std::f32::consts::TAU;
 
 use bevy::{
-    gltf::{GltfMesh, GltfNode},
     gltf::Gltf,
+    gltf::{GltfMesh, GltfNode},
     math::Vec3Swizzles,
     prelude::*,
     window::CursorGrabMode,
 };
 use bevy_rapier3d::prelude::*;
 
-use bevy_fps_controller::controller::*;
-use crate::player::spawn_player;
-use crate::networking::server::main as server_app;
 use crate::networking::client::main as client_app;
+use crate::networking::server::main as server_app;
+use crate::player::spawn_player;
+use bevy_fps_controller::controller::*;
 
 const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 
@@ -28,7 +28,9 @@ fn main() {
     let network_addr_maybe = args.get(2);
 
     let network_flag = network_flag_maybe.unwrap_or(&"0".to_string()).to_string();
-    let network_addr = network_addr_maybe.unwrap_or(&"127.0.0.1:8082".to_string()).to_string();
+    let network_addr = network_addr_maybe
+        .unwrap_or(&"127.0.0.1:8082".to_string())
+        .to_string();
 
     if network_flag == "1" {
         println!("Attempting to start game server");
@@ -38,11 +40,7 @@ fn main() {
     }
 }
 
-fn setup(
-    mut commands: Commands,
-    mut window: Query<&mut Window>,
-    assets: Res<AssetServer>,
-) {
+fn setup(mut commands: Commands, mut window: Query<&mut Window>, assets: Res<AssetServer>) {
     let mut window = window.single_mut();
     window.title = String::from("Minimal FPS Controller Example");
     // commands.spawn(Window { title: "Minimal FPS Controller Example".to_string(), ..default() });
@@ -78,24 +76,25 @@ fn setup(
         is_loaded: false,
     });
 
-    commands.spawn(TextBundle::from_section(
-        "",
-        TextStyle {
-            font: assets.load("fira_mono.ttf"),
-            font_size: 24.0,
-            color: Color::BLACK,
-        },
-    ).with_style(Style {
-        position_type: PositionType::Absolute,
-        top: Val::Px(5.0),
-        left: Val::Px(5.0),
-        ..default()
-    }));
+    commands.spawn(
+        TextBundle::from_section(
+            "",
+            TextStyle {
+                font: assets.load("fira_mono.ttf"),
+                font_size: 24.0,
+                color: Color::BLACK,
+            },
+        )
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            top: Val::Px(5.0),
+            left: Val::Px(5.0),
+            ..default()
+        }),
+    );
 }
 
-fn respawn(
-    mut query: Query<(&mut Transform, &mut Velocity)>,
-) {
+fn respawn(mut query: Query<(&mut Transform, &mut Velocity)>) {
     for (mut transform, mut velocity) in &mut query {
         if transform.translation.y > -50.0 {
             continue;
@@ -128,10 +127,7 @@ fn scene_colliders(
 
     if let Some(gltf) = gltf {
         let scene = gltf.scenes.first().unwrap().clone();
-        commands.spawn(SceneBundle {
-            scene,
-            ..default()
-        });
+        commands.spawn(SceneBundle { scene, ..default() });
         for node in &gltf.nodes {
             let node = gltf_node_assets.get(&node).unwrap();
             if let Some(gltf_mesh) = node.mesh.clone() {
@@ -181,8 +177,12 @@ fn display_text(
         for mut text in &mut text_query {
             text.sections[0].value = format!(
                 "vel: {:.2}, {:.2}, {:.2}\npos: {:.2}, {:.2}, {:.2}\nspd: {:.2}",
-                velocity.linvel.x, velocity.linvel.y, velocity.linvel.z,
-                transform.translation.x, transform.translation.y, transform.translation.z,
+                velocity.linvel.x,
+                velocity.linvel.y,
+                velocity.linvel.z,
+                transform.translation.x,
+                transform.translation.y,
+                transform.translation.z,
                 velocity.linvel.xz().length()
             );
         }

@@ -2,21 +2,21 @@ use std::net::{SocketAddr, UdpSocket};
 
 use crate::networking::handshake::{listen_handshake_events, ConnectionStatus};
 use crate::networking::message::Message::{
-    NetworkInput, PlayerPosition, ServerAcknowledgement, Spawn,
+    PlayerPosition, Spawn,
 };
-use crate::networking::message::{serialize, Message};
+use crate::networking::message::{Message};
 use crate::networking::player::{NetworkObject, NetworkObjectType, PlayerId};
-use crate::networking::send_input::send_player_input;
+
 use crate::networking::send_player_position::send_player_position;
 use crate::networking::systems::{auto_heartbeat_system, Socket, SocketAddress};
 use crate::networking::{ClientPlugin, NetworkEvent, Transport};
 use crate::player::{spawn_player, spawn_player_facade};
 use crate::{display_text, manage_cursor, respawn, scene_colliders, setup};
-use bevy::{log::LogPlugin, prelude::*};
+use bevy::{prelude::*};
 use bevy_fps_controller::controller::FpsControllerPlugin;
 use bevy_rapier3d::plugin::{NoUserData, RapierPhysicsPlugin};
 use bevy_rapier3d::prelude::RapierConfiguration;
-use serde::Serialize;
+
 
 pub fn main(socket_addr: String) {
     let remote_addr: SocketAddr = "127.0.0.1:8080".parse().expect("could not parse addr");
@@ -121,7 +121,7 @@ fn listen_game_events(
                 &mut meshes,
                 &mut materials,
             ),
-            PlayerPosition(received_player_id, pos, object_id) => {
+            PlayerPosition(received_player_id, pos, _object_id) => {
                 println!("Received player pos message");
                 for (networked_object, mut transform) in networked_objects.iter_mut() {
                     println!("Iterating over net objects.");
@@ -141,15 +141,15 @@ fn listen_game_events(
 
 fn listen_events(
     socket: Res<Socket>,
-    mut commands: Commands,
-    mut transport: ResMut<Transport>,
-    mut messages: EventReader<Message>,
-    mut local_player_id: ResMut<PlayerId>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut networked_objects: Query<(&NetworkObject, &mut Transform)>,
+    commands: Commands,
+    transport: ResMut<Transport>,
+    messages: EventReader<Message>,
+    local_player_id: ResMut<PlayerId>,
+    meshes: ResMut<Assets<Mesh>>,
+    materials: ResMut<Assets<StandardMaterial>>,
+    networked_objects: Query<(&NetworkObject, &mut Transform)>,
     timer: Res<Time>,
-    mut connection_status: ResMut<ConnectionStatus>,
+    connection_status: ResMut<ConnectionStatus>,
 ) {
     match *connection_status {
         ConnectionStatus::Initial => listen_handshake_events(

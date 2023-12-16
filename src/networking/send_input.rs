@@ -1,7 +1,7 @@
 use crate::networking::message::serialize;
 use crate::networking::message::Message::NetworkInput;
 use crate::networking::systems::Socket;
-use crate::networking::{NetworkEvent, Transport};
+use crate::networking::{Transport};
 use bevy::input::Input;
 use bevy::prelude::{KeyCode, Res, ResMut};
 

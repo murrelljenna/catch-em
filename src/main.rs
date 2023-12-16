@@ -17,7 +17,7 @@ use bevy_rapier3d::prelude::*;
 
 use crate::networking::client::main as client_app;
 use crate::networking::server::main as server_app;
-use crate::player::spawn_player;
+
 use bevy_fps_controller::controller::*;
 
 const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);

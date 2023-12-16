@@ -3,7 +3,7 @@ use std::f32::consts::TAU;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use crate::networking::player::{NetworkObject, NetworkObjectType, PlayerId, Players};
+use crate::networking::player::{NetworkObject, NetworkObjectType, PlayerId};
 use bevy_fps_controller::controller::*;
 
 const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
@@ -13,8 +13,8 @@ pub(crate) fn spawn_player_facade(
     object_id: u8,
     pos: Vec3,
     commands: &mut Commands,
-    mut meshes: &mut ResMut<Assets<Mesh>>,
-    mut materials: &mut ResMut<Assets<StandardMaterial>>,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
     commands.spawn((
         Collider::capsule(pos, pos * 1.5, 0.5),

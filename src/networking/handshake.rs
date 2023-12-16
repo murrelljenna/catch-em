@@ -13,8 +13,8 @@ use crate::networking::player::{PlayerId, Players};
 use crate::networking::systems::Socket;
 use crate::networking::Transport;
 use bevy::ecs::system::Resource;
-use bevy::prelude::{EventReader, Local, Res, ResMut};
-use serde::Serialize;
+use bevy::prelude::{EventReader, Res, ResMut};
+
 use std::net::SocketAddr;
 
 #[derive(Resource, Debug)]
@@ -57,9 +57,9 @@ pub fn server_handshake(handle: &SocketAddr, transport: &mut ResMut<Transport>) 
 fn client_handshake(
     assigned_player_id: &PlayerId,
     socket: &Res<Socket>,
-    mut transport: &mut ResMut<Transport>,
-    mut local_player_id: &mut ResMut<PlayerId>,
-    mut connection_status: &mut ResMut<ConnectionStatus>,
+    transport: &mut ResMut<Transport>,
+    local_player_id: &mut ResMut<PlayerId>,
+    connection_status: &mut ResMut<ConnectionStatus>,
 ) {
     **local_player_id = *assigned_player_id;
     **connection_status = ConnectionStatus::Complete;

@@ -1,8 +1,8 @@
-use crate::networking::handshake::ConnectionStatus;
+
 use bevy::ecs::system::Resource;
 use bevy::math::Vec3;
 use bevy::prelude::Component;
-use core::fmt;
+
 use rand::Rng;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;

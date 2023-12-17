@@ -1,14 +1,11 @@
-
-
 use std::{net::UdpSocket, time::Duration};
 
 use crate::networking::handshake::server_handshake;
 
+use crate::networking::components::{NetworkObject, NetworkObjectType, NetworkObjects};
 use crate::networking::message::{serialize, Message};
-use crate::networking::player::{
-    NetworkObject, NetworkObjectType, NetworkObjects, Players,
-};
-use crate::networking::systems::Socket;
+use crate::networking::packet_systems::Socket;
+use crate::networking::player::Players;
 use crate::networking::{NetworkEvent, ServerPlugin, Transport};
 use bevy::log::Level;
 use bevy::time::TimePlugin;

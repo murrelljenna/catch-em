@@ -1,7 +1,7 @@
 extern crate core;
 
+mod game;
 mod networking;
-mod player;
 
 use std::env;
 use std::f32::consts::TAU;
@@ -15,8 +15,8 @@ use bevy::{
 };
 use bevy_rapier3d::prelude::*;
 
-use crate::networking::client::main as client_app;
-use crate::networking::server::main as server_app;
+use crate::game::client::main as client_app;
+use crate::game::server::main as server_app;
 
 use bevy_fps_controller::controller::*;
 

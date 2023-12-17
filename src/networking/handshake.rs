@@ -9,8 +9,8 @@
 
 use crate::networking::message::Message::{ClientAcknowledgement, ServerAcknowledgement};
 use crate::networking::message::{serialize, Message};
+use crate::networking::packet_systems::Socket;
 use crate::networking::player::{PlayerId, Players};
-use crate::networking::systems::Socket;
 use crate::networking::Transport;
 use bevy::ecs::system::Resource;
 use bevy::prelude::{EventReader, Res, ResMut};

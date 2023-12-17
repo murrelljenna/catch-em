@@ -4,7 +4,6 @@ use std::{io, net::SocketAddr};
 use crate::networking::message::Message;
 use bevy::ecs::event::Event;
 
-
 use super::raw_message::RawMessage;
 
 #[derive(Event)]

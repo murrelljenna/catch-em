@@ -3,12 +3,13 @@ use std::f32::consts::TAU;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use crate::networking::player::{NetworkObject, NetworkObjectType, PlayerId};
+use crate::networking::components::{NetworkObject, NetworkObjectType};
+use crate::networking::player::PlayerId;
 use bevy_fps_controller::controller::*;
 
 const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 
-pub(crate) fn spawn_player_facade(
+pub fn spawn_player_facade(
     id: PlayerId,
     object_id: u8,
     pos: Vec3,
@@ -55,7 +56,7 @@ struct FPSControllerBundle {
     controller: FpsController,
 }
 
-pub(crate) fn spawn_player(id: PlayerId, object_id: u8, pos: Vec3, commands: &mut Commands) {
+pub fn spawn_player(id: PlayerId, object_id: u8, pos: Vec3, commands: &mut Commands) {
     commands.spawn((
         Collider::capsule(pos, pos * 1.5, 0.5),
         Friction {

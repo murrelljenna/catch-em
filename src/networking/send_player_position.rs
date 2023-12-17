@@ -1,10 +1,11 @@
+use crate::networking::components::NetworkObject;
 use crate::networking::message::serialize;
 use crate::networking::message::Message::PlayerPosition;
-use crate::networking::player::{NetworkObject, PlayerId};
-use crate::networking::systems::Socket;
+use crate::networking::packet_systems::Socket;
+use crate::networking::player::PlayerId;
 use crate::networking::Transport;
 use bevy::prelude::{Entity, Query, Res, ResMut, Transform};
-use bevy_fps_controller::controller::{FpsController};
+use bevy_fps_controller::controller::FpsController;
 
 pub fn send_player_position(
     socket: Res<Socket>,

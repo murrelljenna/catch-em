@@ -1,22 +1,21 @@
 use std::net::{SocketAddr, UdpSocket};
 
+use crate::networking::components::NetworkObject;
+use crate::networking::components::NetworkObjectType;
 use crate::networking::handshake::{listen_handshake_events, ConnectionStatus};
-use crate::networking::message::Message::{
-    PlayerPosition, Spawn,
-};
-use crate::networking::message::{Message};
-use crate::networking::player::{NetworkObject, NetworkObjectType, PlayerId};
+use crate::networking::message::Message;
+use crate::networking::message::Message::{PlayerPosition, Spawn};
+use crate::networking::player::PlayerId;
 
+use crate::game::entities::{spawn_player, spawn_player_facade};
+use crate::networking::packet_systems::{auto_heartbeat_system, Socket, SocketAddress};
 use crate::networking::send_player_position::send_player_position;
-use crate::networking::systems::{auto_heartbeat_system, Socket, SocketAddress};
 use crate::networking::{ClientPlugin, NetworkEvent, Transport};
-use crate::player::{spawn_player, spawn_player_facade};
 use crate::{display_text, manage_cursor, respawn, scene_colliders, setup};
-use bevy::{prelude::*};
+use bevy::prelude::*;
 use bevy_fps_controller::controller::FpsControllerPlugin;
 use bevy_rapier3d::plugin::{NoUserData, RapierPhysicsPlugin};
 use bevy_rapier3d::prelude::RapierConfiguration;
-
 
 pub fn main(socket_addr: String) {
     let remote_addr: SocketAddr = "127.0.0.1:8080".parse().expect("could not parse addr");

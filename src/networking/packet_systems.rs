@@ -3,7 +3,7 @@ use std::{
     net::{SocketAddr, UdpSocket},
 };
 
-use crate::networking::message::{deserialize};
+use crate::networking::message::deserialize;
 use crate::networking::HeartbeatTimer;
 use bevy::prelude::*;
 use bytes::Bytes;

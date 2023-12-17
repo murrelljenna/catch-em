@@ -1,12 +1,11 @@
-
-use crate::networking::player::{NetworkObjectType, PlayerId};
+use crate::networking::player::PlayerId;
 use bevy::ecs::event::Event;
 use bevy::prelude::Vec3;
 use bytes::Bytes;
 
+use crate::networking::components::NetworkObjectType;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
-
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Event, Copy, Clone)]
 pub enum Message {

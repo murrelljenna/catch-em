@@ -1,13 +1,13 @@
-pub mod client;
-mod events;
-mod handshake;
-mod message;
-pub(crate) mod player;
-mod raw_message;
-mod send_input;
-mod send_player_position;
-pub mod server;
-mod systems;
+pub mod components;
+pub mod events;
+pub mod handshake;
+pub mod message;
+pub mod packet_systems;
+pub mod player;
+pub mod raw_message;
+pub mod send_input;
+pub mod send_player_position;
+
 mod transport;
 
 use std::collections::HashMap;
@@ -68,9 +68,9 @@ impl Plugin for ServerPlugin {
         app.insert_resource(NetworkResource::default())
             .insert_resource(transport::Transport::new())
             .add_event::<events::NetworkEvent>()
-            .add_systems(Update, systems::server_recv_packet_system)
-            .add_systems(Update, systems::send_packet_system)
-            .add_systems(Update, systems::idle_timeout_system);
+            .add_systems(Update, packet_systems::server_recv_packet_system)
+            .add_systems(Update, packet_systems::send_packet_system)
+            .add_systems(Update, packet_systems::idle_timeout_system);
     }
 }
 
@@ -88,8 +88,8 @@ impl Plugin for ClientPlugin {
             )))
             .add_event::<events::NetworkEvent>()
             .add_event::<message::Message>()
-            .add_systems(Update, systems::client_recv_packet_system)
-            .add_systems(Update, systems::send_packet_system)
-            .add_systems(Update, systems::auto_heartbeat_system);
+            .add_systems(Update, packet_systems::client_recv_packet_system)
+            .add_systems(Update, packet_systems::send_packet_system)
+            .add_systems(Update, packet_systems::auto_heartbeat_system);
     }
 }

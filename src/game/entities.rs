@@ -7,7 +7,7 @@ use crate::networking::components::{NetworkObject, NetworkObjectType, NetworkTra
 use crate::networking::player::PlayerId;
 use bevy_fps_controller::controller::*;
 
-const SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
+pub const DEFAULT_SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 
 pub fn spawn_player_facade(
     id: PlayerId,
@@ -25,7 +25,7 @@ pub fn spawn_player_facade(
             object_type: NetworkObjectType::Player,
         },
         NetworkTransform {
-            last_pos: Transform::from_translation(SPAWN_POINT).translation,
+            last_pos: Transform::from_translation(pos).translation,
         },
         LockedAxes::ROTATION_LOCKED,
         ActiveEvents::COLLISION_EVENTS,
@@ -47,7 +47,7 @@ pub fn spawn_player_facade(
                 uv_profile: Default::default(),
             })),
             material: materials.add(Color::WHITE.into()),
-            transform: Transform::from_translation(SPAWN_POINT),
+            transform: Transform::from_translation(pos),
             ..default()
         },
     ));
@@ -78,7 +78,7 @@ pub fn spawn_player(id: PlayerId, object_id: u8, pos: Vec3, commands: &mut Comma
         AdditionalMassProperties::Mass(1.0),
         GravityScale(0.0),
         Ccd { enabled: true }, // Prevent clipping when going fast
-        TransformBundle::from_transform(Transform::from_translation(SPAWN_POINT)),
+        TransformBundle::from_transform(Transform::from_translation(pos)),
         LogicalPlayer(0),
         FPSControllerBundle {
             input: FpsControllerInput {

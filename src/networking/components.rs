@@ -62,7 +62,7 @@ impl NetworkTransform {
     /*
     Iterate over all non-owned network transforms and lerp their positions smoothly.
      */
-    pub fn simulate_last_pos(
+    pub fn sync_network_transforms(
         mut networked_objects: Query<(&mut Transform, &NetworkTransform)>,
 
         timer: Res<Time>,

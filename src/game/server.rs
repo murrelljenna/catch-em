@@ -2,6 +2,7 @@ use std::{net::UdpSocket, time::Duration};
 
 use crate::networking::handshake::server_handshake;
 
+use crate::game::entities::DEFAULT_SPAWN_POINT;
 use crate::networking::components::{NetworkObject, NetworkObjectType, NetworkObjects};
 use crate::networking::message::{serialize, Message};
 use crate::networking::packet_systems::Socket;
@@ -106,11 +107,7 @@ fn connection_handler(
 
                     let message = Message::Spawn(
                         *player_id,
-                        Vec3 {
-                            x: 1f32,
-                            y: 1f32,
-                            z: 1f32,
-                        },
+                        DEFAULT_SPAWN_POINT,
                         NetworkObjectType::Player,
                         obj_id,
                     );

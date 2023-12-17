@@ -53,7 +53,7 @@ pub fn main(socket_addr: String) {
         .add_systems(Update, auto_heartbeat_system)
         .add_systems(Update, send_player_position)
         .add_systems(Update, listen_events)
-        .add_systems(Update, NetworkTransform::simulate_last_pos)
+        .add_systems(Update, NetworkTransform::sync_network_transforms)
         .run();
 }
 

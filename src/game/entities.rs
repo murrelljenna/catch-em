@@ -3,7 +3,7 @@ use std::f32::consts::TAU;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use crate::networking::components::{NetworkObject, NetworkObjectType};
+use crate::networking::components::{NetworkObject, NetworkObjectType, NetworkTransform};
 use crate::networking::player::PlayerId;
 use bevy_fps_controller::controller::*;
 
@@ -23,6 +23,9 @@ pub fn spawn_player_facade(
             id: object_id,
             owner: id,
             object_type: NetworkObjectType::Player,
+        },
+        NetworkTransform {
+            last_pos: Transform::from_translation(SPAWN_POINT).translation,
         },
         LockedAxes::ROTATION_LOCKED,
         ActiveEvents::COLLISION_EVENTS,

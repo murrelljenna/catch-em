@@ -1,7 +1,7 @@
 use std::net::{SocketAddr, UdpSocket};
 
-use crate::networking::components::NetworkObject;
 use crate::networking::components::NetworkObjectType;
+use crate::networking::components::{NetworkObject, NetworkTransform};
 use crate::networking::handshake::{listen_handshake_events, ConnectionStatus};
 use crate::networking::message::Message;
 use crate::networking::message::Message::{PlayerPosition, Spawn};
@@ -53,6 +53,7 @@ pub fn main(socket_addr: String) {
         .add_systems(Update, auto_heartbeat_system)
         .add_systems(Update, send_player_position)
         .add_systems(Update, listen_events)
+        .add_systems(Update, NetworkTransform::simulate_last_pos)
         .run();
 }
 
@@ -101,7 +102,7 @@ fn listen_game_events(
     mut local_player_id: ResMut<PlayerId>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut networked_objects: Query<(&NetworkObject, &mut Transform)>,
+    mut networked_objects: Query<(&NetworkObject, &mut NetworkTransform)>,
     timer: Res<Time>,
 ) {
     for message in messages.iter() {
@@ -121,16 +122,7 @@ fn listen_game_events(
                 &mut materials,
             ),
             PlayerPosition(received_player_id, pos, _object_id) => {
-                println!("Received player pos message");
-                for (networked_object, mut transform) in networked_objects.iter_mut() {
-                    println!("Iterating over net objects.");
-                    if networked_object.owner == *received_player_id {
-                        let incremental_adjust = 0.8 * timer.delta_seconds();
-                        let old_translation = transform.translation;
-                        transform.translation = old_translation.lerp(*pos, incremental_adjust);
-                        println!("Found the player's object. Updating pos.")
-                    }
-                }
+                NetworkTransform::update_last_pos(received_player_id, pos, &mut networked_objects);
             }
 
             _ => (),
@@ -146,7 +138,7 @@ fn listen_events(
     local_player_id: ResMut<PlayerId>,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
-    networked_objects: Query<(&NetworkObject, &mut Transform)>,
+    networked_objects: Query<(&NetworkObject, &mut NetworkTransform)>,
     timer: Res<Time>,
     connection_status: ResMut<ConnectionStatus>,
 ) {

@@ -18,7 +18,7 @@ pub fn spawn_player_facade(
     materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
     commands.spawn((
-        Collider::capsule(pos, pos * 1.5, 0.5),
+        Collider::capsule(pos, pos * 1.2, 0.5),
         NetworkObject {
             id: object_id,
             owner: id,

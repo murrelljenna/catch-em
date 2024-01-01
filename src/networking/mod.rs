@@ -3,7 +3,7 @@ pub mod events;
 pub mod handshake;
 pub mod message;
 pub mod packet_systems;
-pub mod player;
+pub mod resources;
 pub mod raw_message;
 pub mod send_input;
 pub mod send_player_position;

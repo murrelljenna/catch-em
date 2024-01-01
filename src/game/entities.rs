@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 use crate::networking::components::{NetworkObject, NetworkObjectType, NetworkTransform};
-use crate::networking::player::PlayerId;
+use crate::networking::resources::PlayerId;
 use bevy_fps_controller::controller::*;
 
 pub const DEFAULT_SPAWN_POINT: Vec3 = Vec3::new(0.0, 1.0, 0.0);

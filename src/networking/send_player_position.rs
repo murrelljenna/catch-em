@@ -2,7 +2,7 @@ use crate::networking::components::NetworkObject;
 use crate::networking::message::serialize;
 use crate::networking::message::Message::PlayerPosition;
 use crate::networking::packet_systems::Socket;
-use crate::networking::player::PlayerId;
+use crate::networking::resources::PlayerId;
 use crate::networking::Transport;
 use bevy::prelude::{Entity, Query, Res, ResMut, Transform};
 use bevy_fps_controller::controller::FpsController;

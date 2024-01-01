@@ -10,12 +10,12 @@
 use crate::networking::message::Message::{ClientAcknowledgement, ServerAcknowledgement};
 use crate::networking::message::{serialize, Message};
 use crate::networking::packet_systems::Socket;
-use crate::networking::player::{PlayerId, Players};
 use crate::networking::Transport;
 use bevy::ecs::system::Resource;
 use bevy::prelude::{EventReader, Res, ResMut};
 
 use std::net::SocketAddr;
+use crate::networking::resources::{PlayerId, Players};
 
 #[derive(Resource, Debug)]
 pub enum ConnectionStatus {

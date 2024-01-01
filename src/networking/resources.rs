@@ -1,13 +1,17 @@
-use bevy::ecs::system::Resource;
-
-
-
+use bevy::prelude::Resource;
+use crate::networking::components::NetworkObjects;
 
 use rand::Rng;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use std::collections::HashMap;
 use std::net::SocketAddr;
+
+#[derive(Resource, Default, Debug)]
+pub struct NetworkGame {
+    pub(crate) players: Players,
+    pub(crate) objects: NetworkObjects
+}
 
 #[derive(PartialEq, Debug, Serialize, Hash, Deserialize, Resource, Eq, Clone, Copy)]
 pub struct PlayerId(pub u8);
@@ -19,8 +23,8 @@ pub struct Players {
 
 impl Players {
     pub fn for_all_except<F>(&self, excluded_id: PlayerId, mut action: F)
-    where
-        F: FnMut(&SocketAddr),
+        where
+            F: FnMut(&SocketAddr),
     {
         for (player_id, value) in &self.players {
             if *player_id != excluded_id {

@@ -1,4 +1,4 @@
-use crate::networking::player::PlayerId;
+use crate::networking::resources::PlayerId;
 use bevy::ecs::event::Event;
 use bevy::prelude::Vec3;
 use bytes::Bytes;

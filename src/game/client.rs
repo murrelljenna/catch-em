@@ -6,7 +6,7 @@ use crate::networking::components::{NetworkObject, NetworkTransform};
 use crate::networking::handshake::{listen_handshake_events, ConnectionStatus};
 use crate::networking::message::Message;
 use crate::networking::message::Message::{Despawn, PlayerPosition, Spawn};
-use crate::networking::player::PlayerId;
+use crate::networking::resources::PlayerId;
 
 use crate::game::entities::{spawn_player, spawn_player_facade};
 use crate::networking::packet_systems::{auto_heartbeat_system, Socket, SocketAddress};

@@ -1,8 +1,7 @@
+use crate::networking::resources::PlayerId;
 use bevy::ecs::system::Resource;
 use bevy::math::Vec3;
 use bevy::prelude::{Component, Query, Res, Time, Transform};
-
-use crate::networking::player::PlayerId;
 use bevy_rapier3d::na::DimAdd;
 use rand::Rng;
 use serde_derive::Deserialize;

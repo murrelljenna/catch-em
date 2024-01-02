@@ -1,10 +1,17 @@
-use bevy::ecs::system::Resource;
+use crate::networking::components::NetworkObjects;
+use bevy::prelude::Resource;
 
 use rand::Rng;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use std::collections::HashMap;
 use std::net::SocketAddr;
+
+#[derive(Resource, Default, Debug)]
+pub struct NetworkGame {
+    pub(crate) players: Players,
+    pub(crate) objects: NetworkObjects,
+}
 
 #[derive(PartialEq, Debug, Serialize, Hash, Deserialize, Resource, Eq, Clone, Copy)]
 pub struct PlayerId(pub u8);

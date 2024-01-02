@@ -1,10 +1,11 @@
+use bevy::app::AppExit;
 use std::net::{SocketAddr, UdpSocket};
 
 use crate::networking::components::NetworkObjectType;
 use crate::networking::components::{NetworkObject, NetworkTransform};
 use crate::networking::handshake::{listen_handshake_events, ConnectionStatus};
 use crate::networking::message::Message;
-use crate::networking::message::Message::{PlayerPosition, Spawn};
+use crate::networking::message::Message::{Despawn, PlayerPosition, Spawn};
 use crate::networking::player::PlayerId;
 
 use crate::game::entities::{spawn_player, spawn_player_facade};
@@ -102,6 +103,7 @@ fn listen_game_events(
     mut local_player_id: ResMut<PlayerId>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut networked_entities: Query<(&NetworkObject, Entity)>,
     mut networked_objects: Query<(&NetworkObject, &mut NetworkTransform)>,
     timer: Res<Time>,
 ) {
@@ -124,6 +126,13 @@ fn listen_game_events(
             PlayerPosition(received_player_id, pos, _object_id) => {
                 NetworkTransform::update_last_pos(received_player_id, pos, &mut networked_objects);
             }
+            Despawn(_, object_id) => {
+                for (object, entity) in networked_entities.iter_mut() {
+                    if (object.id == *object_id) {
+                        commands.entity(entity).despawn();
+                    }
+                }
+            }
 
             _ => (),
         }
@@ -139,6 +148,7 @@ fn listen_events(
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
     networked_objects: Query<(&NetworkObject, &mut NetworkTransform)>,
+    mut networked_entities: Query<(&NetworkObject, Entity)>,
     timer: Res<Time>,
     connection_status: ResMut<ConnectionStatus>,
 ) {
@@ -156,6 +166,7 @@ fn listen_events(
             local_player_id,
             meshes,
             materials,
+            networked_entities,
             networked_objects,
             timer,
         ),

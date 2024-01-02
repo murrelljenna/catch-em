@@ -54,11 +54,25 @@ fn connection_handler(
             NetworkEvent::Connected(handle) => {
                 info!("{}: connected!", handle);
                 server_handshake(handle, &mut transport);
-
-                println!("{:?}", players)
             }
             NetworkEvent::Disconnected(handle) => {
                 info!("{}: disconnected!", handle);
+                let player_id = players
+                    .player_from_socket(*handle)
+                    .expect("Disconnected user not recorded in players");
+
+                let player_objects = network_objects.objects_of_player(player_id);
+                players.players.remove(&player_id);
+                for object in player_objects {
+                    for player_addr in players.players.values() {
+                        network_objects.objects.remove(&object);
+                        info!("{}: Sending despawn message", player_addr);
+                        transport.send(
+                            *player_addr,
+                            &serialize(Message::Despawn(player_id, object.id)),
+                        )
+                    }
+                }
             }
             NetworkEvent::RawMessage(handle, msg) => match msg {
                 Message::PlayerPosition(player_id, pos, object_id) => {

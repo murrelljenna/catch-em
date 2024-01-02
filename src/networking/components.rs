@@ -3,6 +3,7 @@ use bevy::math::Vec3;
 use bevy::prelude::{Component, Query, Res, Time, Transform};
 
 use crate::networking::player::PlayerId;
+use bevy_rapier3d::na::DimAdd;
 use rand::Rng;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
@@ -32,6 +33,20 @@ pub enum NetworkObjectType {
 #[derive(Resource, Default, Debug)]
 pub struct NetworkObjects {
     pub objects: HashMap<NetworkObject, Vec3>,
+}
+
+impl NetworkObjects {
+    pub fn objects_of_player(&mut self, id: PlayerId) -> Vec<NetworkObject> {
+        let mut net_objs = Vec::new();
+
+        for object in self.objects.keys() {
+            if (object.owner == id) {
+                net_objs.push(object.clone());
+            }
+        }
+
+        net_objs
+    }
 }
 
 /*

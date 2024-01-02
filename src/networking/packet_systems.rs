@@ -1,3 +1,4 @@
+use std::io::ErrorKind;
 use std::{
     io,
     net::{SocketAddr, UdpSocket},
@@ -33,7 +34,15 @@ pub fn client_recv_packet_system(socket: Res<Socket>, mut events: EventWriter<Ne
             }
             Err(e) => {
                 if e.kind() != io::ErrorKind::WouldBlock {
-                    events.send(NetworkEvent::RecvError(e));
+                    match e.kind() {
+                        ErrorKind::ConnectionReset => events.send(NetworkEvent::Disconnected(
+                            socket
+                                .0
+                                .local_addr()
+                                .expect("No peer address for some reason"),
+                        )),
+                        _ => events.send(NetworkEvent::RecvError(e)),
+                    }
                 }
                 // break loop when no messages are left to read this frame
                 break;
@@ -68,7 +77,10 @@ pub fn server_recv_packet_system(
             }
             Err(e) => {
                 if e.kind() != io::ErrorKind::WouldBlock {
-                    events.send(NetworkEvent::RecvError(e));
+                    match e.kind() {
+                        ErrorKind::ConnectionReset => (), //events.send(NetworkEvent::RecvError(e)),
+                        _ => events.send(NetworkEvent::RecvError(e)),
+                    }
                 }
                 // break loop when no messages are left to read this frame
                 break;

@@ -11,13 +11,15 @@ pub mod send_player_position;
 mod transport;
 
 use std::collections::HashMap;
-use std::net::SocketAddr;
+use std::net::{SocketAddr, UdpSocket};
 use std::time::Duration;
 
 pub use self::events::NetworkEvent;
 pub use self::transport::Transport;
 
 use bevy::prelude::*;
+use crate::networking::packet_systems::Socket;
+use crate::networking::resources::NetworkGame;
 
 /// Defines how many times a client automatically sends a heartbeat packet.
 /// This should be no more than half of idle_timeout.
@@ -61,16 +63,25 @@ pub enum ClientSystem {
     Heartbeat,
 }
 
-pub struct ServerPlugin;
+pub struct ServerPlugin(pub String);
 
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
+        let socket = UdpSocket::bind(self.0.as_str()).expect("could not bind socket");
+        socket
+            .set_nonblocking(true)
+            .expect("could not set socket to be nonblocking");
+        socket
+            .set_read_timeout(Some(Duration::from_secs(5)))
+            .expect("could not set read timeout");
+
         app.insert_resource(NetworkResource::default())
             .insert_resource(transport::Transport::new())
             .add_event::<events::NetworkEvent>()
             .add_systems(Update, packet_systems::server_recv_packet_system)
             .add_systems(Update, packet_systems::send_packet_system)
-            .add_systems(Update, packet_systems::idle_timeout_system);
+            .add_systems(Update, packet_systems::idle_timeout_system).insert_resource(Socket(socket))
+            .insert_resource(NetworkGame::default());
     }
 }
 

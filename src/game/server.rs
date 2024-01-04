@@ -14,15 +14,8 @@ use bevy::{app::ScheduleRunnerPlugin, log::LogPlugin, prelude::*};
 
 const LISTEN_ADDRESS: &str = "127.0.0.1:8080";
 
-pub fn main() {
-    let socket = UdpSocket::bind(LISTEN_ADDRESS).expect("could not bind socket");
-    socket
-        .set_nonblocking(true)
-        .expect("could not set socket to be nonblocking");
-    socket
-        .set_read_timeout(Some(Duration::from_secs(5)))
-        .expect("could not set read timeout");
 
+pub fn main() {
     info!("Server now listening on {}", LISTEN_ADDRESS);
 
     App::new()
@@ -30,14 +23,12 @@ pub fn main() {
         .add_plugins(ScheduleRunnerPlugin::run_loop(Duration::from_secs_f32(
             1. / 30.,
         )))
-        .insert_resource(Socket(socket))
-        .insert_resource(NetworkGame::default())
         .add_plugins(TimePlugin::default())
         .add_plugins(LogPlugin {
             filter: "".to_string(),
             level: Level::INFO,
         })
-        .add_plugins(ServerPlugin)
+        .add_plugins(ServerPlugin(LISTEN_ADDRESS.parse().unwrap()))
         .add_systems(Update, connection_handler)
         .run();
 }

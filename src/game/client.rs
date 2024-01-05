@@ -10,7 +10,7 @@ use crate::networking::resources::PlayerId;
 
 use crate::game::entities::{spawn_player, spawn_player_facade};
 use crate::networking::packet_systems::{auto_heartbeat_system, Socket, SocketAddress};
-use crate::networking::send_player_position::send_player_position;
+use crate::networking::send_player_position::sync_network_transforms;
 use crate::networking::{ClientPlugin, NetworkEvent, Transport};
 use crate::{display_text, manage_cursor, respawn, scene_colliders, setup};
 use bevy::prelude::*;
@@ -52,7 +52,7 @@ pub fn main(socket_addr: String) {
             (manage_cursor, scene_colliders, display_text, respawn),
         )
         .add_systems(Update, auto_heartbeat_system)
-        .add_systems(Update, send_player_position)
+        .add_systems(Update, sync_network_transforms)
         .add_systems(Update, listen_events)
         .add_systems(Update, NetworkTransform::sync_network_transforms)
         .run();

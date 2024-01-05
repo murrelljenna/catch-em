@@ -20,7 +20,6 @@ use crate::networking::resources::{PlayerId, Players};
 #[derive(Resource, Debug)]
 pub enum ConnectionStatus {
     Initial,      // Client has just sent connection to server
-    Acknowledged, // Client has received server acknowledgement
     Complete,     // Client has sent server acknowledgement
 }
 

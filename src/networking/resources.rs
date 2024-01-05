@@ -44,10 +44,6 @@ impl Players {
         return PlayerId(rng.gen());
     }
 
-    pub fn remove_player(&mut self, id: PlayerId) {
-        self.players.remove(&id);
-    }
-
     pub fn player_from_socket(&mut self, addr: SocketAddr) -> Option<PlayerId> {
         for (key, value) in self.players.iter() {
             if *value == addr {

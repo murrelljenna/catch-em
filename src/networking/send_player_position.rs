@@ -5,7 +5,7 @@ use crate::networking::packet_systems::Socket;
 use crate::networking::resources::PlayerId;
 use crate::networking::Transport;
 use bevy::prelude::{Entity, Query, Res, ResMut, Transform};
-use bevy_fps_controller::controller::FpsController;
+
 
 pub fn sync_network_transforms(
     socket: Res<Socket>,

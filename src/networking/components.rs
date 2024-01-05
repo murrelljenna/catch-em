@@ -2,7 +2,7 @@ use crate::networking::resources::PlayerId;
 use bevy::ecs::system::Resource;
 use bevy::math::Vec3;
 use bevy::prelude::{Component, Query, Res, Time, Transform};
-use bevy_rapier3d::na::DimAdd;
+
 use rand::Rng;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
@@ -39,7 +39,7 @@ impl NetworkObjects {
         let mut net_objs = Vec::new();
 
         for object in self.objects.keys() {
-            if (object.owner == id) {
+            if object.owner == id {
                 net_objs.push(object.clone());
             }
         }
@@ -65,7 +65,7 @@ impl NetworkTransform {
     pub fn update_last_pos(
         received_player_id: &PlayerId,
         received_position: &Vec3,
-        mut networked_objects: &mut Query<(&NetworkObject, &mut NetworkTransform)>,
+        networked_objects: &mut Query<(&NetworkObject, &mut NetworkTransform)>,
     ) {
         for (networked_object, mut transform) in networked_objects.iter_mut() {
             if networked_object.owner == *received_player_id {

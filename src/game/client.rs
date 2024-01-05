@@ -5,7 +5,7 @@ use crate::networking::components::NetworkObjectType;
 use crate::networking::components::{NetworkObject, NetworkTransform};
 use crate::networking::handshake::{listen_handshake_events, ConnectionStatus};
 use crate::networking::message::Message;
-use crate::networking::message::Message::{Despawn, PlayerPosition, Spawn};
+use crate::networking::message::Message::{Despawn, NetworkPosition, Spawn};
 use crate::networking::resources::PlayerId;
 
 use crate::game::entities::{spawn_player, spawn_player_facade};
@@ -123,7 +123,7 @@ fn listen_game_events(
                 &mut meshes,
                 &mut materials,
             ),
-            PlayerPosition(received_player_id, pos, _object_id) => {
+            NetworkPosition(received_player_id, pos, _object_id) => {
                 NetworkTransform::update_last_pos(received_player_id, pos, &mut networked_objects);
             }
             Despawn(_, object_id) => {

@@ -11,7 +11,7 @@ use serde_derive::Serialize;
 pub enum Message {
     Spawn(PlayerId, Vec3, NetworkObjectType, u8),
     Despawn(PlayerId, u8),
-    PlayerPosition(PlayerId, Vec3, u8),
+    NetworkPosition(PlayerId, Vec3, u8),
     NetworkInput { w: bool, s: bool, a: bool, d: bool },
     // Used in initial server->client handshake to pass network info to client
     ServerAcknowledgement(PlayerId),

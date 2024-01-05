@@ -1,6 +1,6 @@
 use crate::networking::components::{NetworkObject, NetworkTransform};
 use crate::networking::message::serialize;
-use crate::networking::message::Message::PlayerPosition;
+use crate::networking::message::Message::NetworkPosition;
 use crate::networking::packet_systems::Socket;
 use crate::networking::resources::PlayerId;
 use crate::networking::Transport;
@@ -19,7 +19,7 @@ pub fn sync_network_transforms(
                 .0
                 .peer_addr()
                 .expect("Socket address could not be found"),
-            &serialize(PlayerPosition(
+            &serialize(NetworkPosition(
                 *player_id,
                 transform.translation,
                 net_obj.id,

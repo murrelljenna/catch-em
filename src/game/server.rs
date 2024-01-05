@@ -65,11 +65,11 @@ fn connection_handler(
                 }
             }
             NetworkEvent::RawMessage(handle, msg) => match msg {
-                Message::PlayerPosition(player_id, pos, object_id) => {
+                Message::NetworkPosition(player_id, pos, object_id) => {
                     network.players.for_all_except(*player_id, |addr| {
                         transport.send(
                             *addr,
-                            &serialize(Message::PlayerPosition(*player_id, *pos, *object_id)),
+                            &serialize(Message::NetworkPosition(*player_id, *pos, *object_id)),
                         );
                     });
 

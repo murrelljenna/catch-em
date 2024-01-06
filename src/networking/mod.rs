@@ -22,7 +22,7 @@ use crate::networking::components::{NetworkObject, NetworkTransform};
 use crate::networking::handshake::{ConnectionStatus, listen_handshake_events};
 use crate::networking::message::Message;
 use crate::networking::message::Message::{Despawn, NetworkPosition, Spawn};
-use crate::networking::packet_systems::{auto_heartbeat_system, Socket, SocketAddress};
+use crate::networking::packet_systems::{auto_heartbeat_system, Socket, SocketAddress, SocketLive};
 use crate::networking::resources::{NetworkGame, PlayerId};
 use crate::networking::send_player_position::sync_network_transforms;
 
@@ -85,7 +85,7 @@ impl Plugin for ServerPlugin {
             .add_event::<events::NetworkEvent>()
             .add_systems(Update, packet_systems::server_recv_packet_system)
             .add_systems(Update, packet_systems::send_packet_system)
-            .add_systems(Update, packet_systems::idle_timeout_system).insert_resource(Socket(socket))
+            .add_systems(Update, packet_systems::idle_timeout_system).insert_resource(Socket(Box::new(SocketLive(socket))))
             .insert_resource(NetworkGame::default());
     }
 }
@@ -112,7 +112,7 @@ impl Plugin for ClientPlugin {
                 Default::default(),
             )))
             .insert_resource(SocketAddress(remote_addr))
-            .insert_resource(Socket(socket))
+            .insert_resource(Socket(Box::new(SocketLive(socket))))
             .add_event::<events::NetworkEvent>()
             .add_event::<message::Message>()
             .add_systems(Update, packet_systems::client_recv_packet_system)

@@ -67,7 +67,6 @@ fn client_handshake(
 
     transport.send(
         socket
-            .0
             .peer_addr()
             .expect("Socket address could not be found"),
         &serialize(message),

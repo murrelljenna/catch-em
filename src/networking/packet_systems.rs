@@ -3,6 +3,7 @@ use std::{
     io,
     net::{SocketAddr, UdpSocket},
 };
+use std::net::ToSocketAddrs;
 
 use crate::networking::message::deserialize;
 use crate::networking::HeartbeatTimer;
@@ -11,8 +12,49 @@ use bytes::Bytes;
 
 use super::{events::NetworkEvent, transport::Transport, NetworkResource};
 
+pub trait SocketLike {
+    fn peer_addr(&self) -> io::Result<SocketAddr>;
+    fn recv_from(&self, buf: &mut [u8]) ->  io::Result<(usize, SocketAddr)>;
+
+    fn send_to(&self, buf: &[u8], addr: SocketAddr) -> io::Result<usize>;
+}
+
 #[derive(Resource)]
-pub struct Socket(pub UdpSocket);
+pub struct SocketLive(
+    pub UdpSocket
+);
+
+impl SocketLike for SocketLive {
+    fn peer_addr(&self) -> io::Result<SocketAddr> {
+        return self.0.peer_addr();
+    }
+
+    fn recv_from(&self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
+        return self.0.recv_from(buf);
+    }
+
+    fn send_to(&self, buf: &[u8], addr: SocketAddr) -> io::Result<usize> {
+        return self.0.send_to(buf, addr);
+    }
+}
+
+pub struct SocketTest();
+
+#[derive(Resource)]
+pub struct Socket(pub Box<dyn SocketLike + Send + Sync>);
+
+impl Socket {
+    pub fn peer_addr(&self) -> io::Result<SocketAddr> {
+        return self.0.peer_addr();
+    }
+    pub fn recv_from(&self, buf: &mut [u8]) ->  io::Result<(usize, SocketAddr)> {
+        return self.0.recv_from(buf);
+    }
+
+    pub fn send_to(&self, buf: &[u8], addr: SocketAddr) -> io::Result<usize> {
+        return self.0.send_to(buf, addr);
+    }
+}
 
 #[derive(Resource)]
 pub struct SocketAddress(pub SocketAddr);
@@ -20,7 +62,7 @@ pub struct SocketAddress(pub SocketAddr);
 pub fn client_recv_packet_system(socket: Res<Socket>, mut events: EventWriter<NetworkEvent>) {
     loop {
         let mut buf = [0; 512];
-        match socket.0.recv_from(&mut buf) {
+        match socket.recv_from(&mut buf) {
             Ok((recv_len, address)) => {
                 let payload = Bytes::copy_from_slice(&buf[..recv_len]);
                 if payload.len() == 0 {
@@ -37,8 +79,7 @@ pub fn client_recv_packet_system(socket: Res<Socket>, mut events: EventWriter<Ne
                     match e.kind() {
                         ErrorKind::ConnectionReset => events.send(NetworkEvent::Disconnected(
                             socket
-                                .0
-                                .local_addr()
+                                .peer_addr()
                                 .expect("No peer address for some reason"),
                         )),
                         _ => events.send(NetworkEvent::RecvError(e)),
@@ -59,7 +100,7 @@ pub fn server_recv_packet_system(
 ) {
     loop {
         let mut buf = [0; 512];
-        match socket.0.recv_from(&mut buf) {
+        match socket.recv_from(&mut buf) {
             Ok((recv_len, address)) => {
                 let payload = Bytes::copy_from_slice(&buf[..recv_len]);
                 if net.connections.insert(address, time.elapsed()).is_none() {
@@ -96,7 +137,7 @@ pub fn send_packet_system(
 ) {
     let messages = transport.drain_messages_to_send(|_| true);
     for message in messages {
-        if let Err(e) = socket.0.send_to(&message.payload, message.destination) {
+        if let Err(e) = socket.send_to(&message.payload, message.destination) {
             events.send(NetworkEvent::SendError(e, message))
         }
     }

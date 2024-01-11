@@ -3,6 +3,7 @@ use std::{io, net::SocketAddr};
 
 use crate::networking::message::Message;
 use bevy::ecs::event::Event;
+use crate::networking::packet_systems::SocketError;
 
 use super::raw_message::RawMessage;
 
@@ -15,7 +16,7 @@ pub enum NetworkEvent {
     // A client has disconnected from us
     Disconnected(SocketAddr),
     // An error occurred while receiving a message
-    RecvError(io::Error),
+    RecvError(SocketError),
     // An error occurred while sending a message
-    SendError(io::Error, RawMessage),
+    SendError(SocketError, RawMessage),
 }

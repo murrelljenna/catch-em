@@ -1,22 +1,30 @@
-use std::io::ErrorKind;
+use std::io::{Error, ErrorKind};
 use std::{
     io,
     net::{SocketAddr, UdpSocket},
 };
-use std::net::ToSocketAddrs;
+use std::collections::{HashMap, VecDeque};
 
 use crate::networking::message::deserialize;
 use crate::networking::HeartbeatTimer;
 use bevy::prelude::*;
 use bytes::Bytes;
+use crate::networking::packet_systems::SocketError::NoInput;
 
 use super::{events::NetworkEvent, transport::Transport, NetworkResource};
 
-pub trait SocketLike {
-    fn peer_addr(&self) -> io::Result<SocketAddr>;
-    fn recv_from(&self, buf: &mut [u8]) ->  io::Result<(usize, SocketAddr)>;
+#[derive(Debug)]
+pub enum SocketError {
+    ConnectionReset(),
+    NoInput(),
+    Other(ErrorKind)
+}
 
-    fn send_to(&self, buf: &[u8], addr: SocketAddr) -> io::Result<usize>;
+pub trait SocketLike {
+    fn peer_addr(&self) -> Result<SocketAddr, SocketError>;
+    fn recv_from(&self, buf: &mut [u8]) ->  Result<(usize, SocketAddr), SocketError>;
+
+    fn send_to(&self, buf: &[u8], addr: SocketAddr) -> Result<usize, SocketError>;
 }
 
 #[derive(Resource)]
@@ -25,33 +33,58 @@ pub struct SocketLive(
 );
 
 impl SocketLike for SocketLive {
-    fn peer_addr(&self) -> io::Result<SocketAddr> {
-        return self.0.peer_addr();
+    fn peer_addr(&self) -> Result<SocketAddr, SocketError> {
+        return self.0.peer_addr().map_err(|err| match err.kind() {
+            ErrorKind::ConnectionReset => NoInput(),
+            kind => SocketError::Other(kind)
+        });
     }
 
-    fn recv_from(&self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
-        return self.0.recv_from(buf);
+    fn recv_from(&self, buf: &mut [u8]) -> Result<(usize, SocketAddr), SocketError> {
+        return self.0.recv_from(buf).map_err(|err| match err.kind() {
+            ErrorKind::WouldBlock => SocketError::NoInput(),
+            ErrorKind::ConnectionReset => SocketError::ConnectionReset(),
+            _ => SocketError::Other(err.kind())
+        });
     }
 
-    fn send_to(&self, buf: &[u8], addr: SocketAddr) -> io::Result<usize> {
-        return self.0.send_to(buf, addr);
+    fn send_to(&self, buf: &[u8], addr: SocketAddr) -> Result<usize, SocketError> {
+        return self.0.send_to(buf, addr).map_err(|err| SocketError::Other(err.kind()));
     }
 }
 
-pub struct SocketTest();
+pub struct SocketTest(SocketAddr, HashMap<SocketAddr, VecDeque<(usize, Box<[u8]>, SocketAddr)>>);
+
+impl SocketTest {
+    fn peer_addr(&self) -> Result<SocketAddr, SocketError> {
+        return Ok(self.0);
+    }
+
+    fn recv_from(&mut self, buf: &mut [u8]) -> Result<(usize, SocketAddr), SocketError> {
+        let mut data: &mut VecDeque<(usize, Box<[u8]>, SocketAddr)> = self.1.get_mut(&self.0).expect("No queue initialized for in memory socket at: {}");
+        match VecDeque::pop_front(data) {
+            Some((size, bytes, addr)) => {
+                buf[..size].copy_from_slice(bytes.as_ref());
+                return Ok((size, addr));
+            }
+
+            None => Err(SocketError::NoInput())
+        }
+    }
+}
 
 #[derive(Resource)]
 pub struct Socket(pub Box<dyn SocketLike + Send + Sync>);
 
 impl Socket {
-    pub fn peer_addr(&self) -> io::Result<SocketAddr> {
+    pub fn peer_addr(&self) -> Result<SocketAddr, SocketError> {
         return self.0.peer_addr();
     }
-    pub fn recv_from(&self, buf: &mut [u8]) ->  io::Result<(usize, SocketAddr)> {
+    pub fn recv_from(&self, buf: &mut [u8]) ->  Result<(usize, SocketAddr), SocketError> {
         return self.0.recv_from(buf);
     }
 
-    pub fn send_to(&self, buf: &[u8], addr: SocketAddr) -> io::Result<usize> {
+    pub fn send_to(&self, buf: &[u8], addr: SocketAddr) -> Result<usize, SocketError> {
         return self.0.send_to(buf, addr);
     }
 }
@@ -75,15 +108,14 @@ pub fn client_recv_packet_system(socket: Res<Socket>, mut events: EventWriter<Ne
                 events.send(NetworkEvent::RawMessage(address, message));
             }
             Err(e) => {
-                if e.kind() != io::ErrorKind::WouldBlock {
-                    match e.kind() {
-                        ErrorKind::ConnectionReset => events.send(NetworkEvent::Disconnected(
-                            socket
-                                .peer_addr()
-                                .expect("No peer address for some reason"),
-                        )),
-                        _ => events.send(NetworkEvent::RecvError(e)),
-                    }
+                match e {
+                    SocketError::NoInput() => (),
+                    SocketError::ConnectionReset() => events.send(NetworkEvent::Disconnected(
+                        socket
+                            .peer_addr()
+                            .expect("No peer address for some reason"),
+                    )),
+                    _ => events.send(NetworkEvent::RecvError(e))
                 }
                 // break loop when no messages are left to read this frame
                 break;
@@ -117,11 +149,14 @@ pub fn server_recv_packet_system(
                 events.send(NetworkEvent::RawMessage(address, message));
             }
             Err(e) => {
-                if e.kind() != io::ErrorKind::WouldBlock {
-                    match e.kind() {
-                        ErrorKind::ConnectionReset => (), //events.send(NetworkEvent::RecvError(e)),
-                        _ => events.send(NetworkEvent::RecvError(e)),
-                    }
+                match e {
+                    SocketError::NoInput() => (),
+                    SocketError::ConnectionReset() => events.send(NetworkEvent::Disconnected(
+                        socket
+                            .peer_addr()
+                            .expect("No peer address for some reason"),
+                    )),
+                    _ => events.send(NetworkEvent::RecvError(e))
                 }
                 // break loop when no messages are left to read this frame
                 break;

@@ -13,6 +13,7 @@ pub struct NetworkObject {
     pub id: u8,
     pub owner: PlayerId,
     pub object_type: NetworkObjectType,
+    pub is_owned: bool
 }
 
 impl NetworkObject {
@@ -82,6 +83,7 @@ impl NetworkTransform {
         timer: Res<Time>,
     ) {
         for (mut transform, network_transform) in networked_objects.iter_mut() {
+            println!("{:?}", network_transform.last_pos);
             if transform.translation == network_transform.last_pos {
                 continue;
             }

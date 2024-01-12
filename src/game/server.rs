@@ -86,6 +86,7 @@ fn connection_handler(
                             id: net_obj.id,
                             owner: *player_id,
                             object_type: net_obj.object_type,
+                            is_owned: false
                         },
                         *pos,
                     );
@@ -134,6 +135,7 @@ fn connection_handler(
                             id: obj_id,
                             owner: *player_id,
                             object_type: NetworkObjectType::Player,
+                            is_owned: false
                         },
                         Vec3 {
                             x: 1f32,

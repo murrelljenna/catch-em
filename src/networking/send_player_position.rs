@@ -10,10 +10,13 @@ use bevy::prelude::{Entity, Query, Res, ResMut, Transform};
 pub fn sync_network_transforms(
     socket: Res<Socket>,
     mut transport: ResMut<Transport>,
-    mut query: Query<(&NetworkObject, Entity, &NetworkTransform, &mut Transform)>,
+    mut query: Query<(&NetworkObject, Entity, &mut Transform)>,
     player_id: Res<PlayerId>,
 ) {
-    for (net_obj, _, _, transform) in query.iter_mut() {
+    for (net_obj, _, transform) in query.iter_mut() {
+        if !net_obj.is_owned {
+            continue;
+        }
         transport.send(
             socket
                 .0

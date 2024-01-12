@@ -23,6 +23,7 @@ pub fn spawn_player_facade(
             id: object_id,
             owner: id,
             object_type: NetworkObjectType::Player,
+            is_owned: false
         },
         NetworkTransform {
             last_pos: Transform::from_translation(pos).translation,
@@ -59,6 +60,28 @@ struct FPSControllerBundle {
     controller: FpsController,
 }
 
+#[derive(Bundle)]
+struct NetworkTransformBundle {
+    transform: NetworkTransform,
+    object: NetworkObject
+}
+
+impl NetworkTransformBundle {
+    pub fn new(object_id: u8, owner_id: PlayerId, object_type: NetworkObjectType, start_pos: Vec3, is_owned: bool) -> NetworkTransformBundle {
+        return NetworkTransformBundle {
+            transform: NetworkTransform {
+                last_pos: Transform::from_translation(start_pos).translation,
+            },
+            object: NetworkObject {
+                id: object_id,
+                owner: owner_id,
+                object_type,
+                is_owned
+            }
+        }
+    }
+}
+
 pub fn spawn_player(id: PlayerId, object_id: u8, pos: Vec3, commands: &mut Commands) {
     commands.spawn((
         Collider::capsule(pos, pos * 1.5, 0.5),
@@ -69,6 +92,12 @@ pub fn spawn_player(id: PlayerId, object_id: u8, pos: Vec3, commands: &mut Comma
         Restitution {
             coefficient: 0.0,
             combine_rule: CoefficientCombineRule::Min,
+        },
+        NetworkObject {
+            id: object_id,
+            owner: id,
+            object_type: NetworkObjectType::Player,
+            is_owned: true
         },
         ActiveEvents::COLLISION_EVENTS,
         Velocity::zero(),
@@ -90,11 +119,6 @@ pub fn spawn_player(id: PlayerId, object_id: u8, pos: Vec3, commands: &mut Comma
                 air_acceleration: 80.0,
                 ..default()
             },
-        },
-        (NetworkObject {
-            id: object_id,
-            owner: id,
-            object_type: NetworkObjectType::Player,
-        }),
+        }
     ));
 }
